@@ -1,10 +1,10 @@
 # ETC5521 Assignment 1 
 
-Team name: [FILL]
+Team name: Grevillea
 
 Team members:
 
-* [FILL]
+* Samuel Lyubic
 * [FILL]
 
 # Steps

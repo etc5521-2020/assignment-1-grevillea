@@ -1,9 +1,9 @@
 ---
 title: "ETC5521 Assignment 1"
-subtitle: "Your title"
-team: [FILL]
+subtitle: "Tour de france"
+team: Grevillea
 author:
-  - [FILL]
+  - Samuel Lyubic
   - [FILL]
 date: "`r Sys.Date()`"
 output: 
