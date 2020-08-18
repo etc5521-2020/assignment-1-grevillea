@@ -1,10 +1,10 @@
 ---
 title: "ETC5521 Assignment 1"
 subtitle: "Your title"
-team: [FILL]
+team: grevillea
 author:
-  - [FILL]
-  - [FILL]
+  - Brendi Ang
+  - Samuel Lyubic
 date: "`r Sys.Date()`"
 output: 
   html_document
@@ -12,15 +12,290 @@ output:
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
 
-
 # Introduction and motivation
 
-[FILL] Give the bigger picture of the data, and inspire the reader to learn more about the problem by reading your analysis. 
+**Intro:**
+- History of Tour De France
+  - Where is it held?
+  - How has it evolved?
+- What is it? How to win?
+  - Special jerseys
+  - Different stages
+  - Team sport
+  
+## History of Tour De France
+
+Tour De France ("Le Tour") is an annual men's bicycle race that in modern days encompasses a 21-day course that covers approximately 3,500km. It is predominantly held in France while often passing through other countries. Cyclists from around the world gather for a chance to win the prestigious 'Tour De France' trophy, along with a cash prize of €450,000.
+
+## Stages
+
+Split into 21 stages:
+- 9 flat stages
+- 3 hilly stages
+- 8 mountain stages (incl. 5 summit finishes)
+- 1 individual time trials (usually on the penultimate)
+- 2 rest days
+
+At present, one stage is performed every day, covering approximately 225km& about 5.5hours to complete. Each stage has a winner, & the rider that completes the most stages in the shortest amount of time wins the overall title.
+
+Permitted disqualification time in which riders must finish (Winners time + pre-determined % of that time)
+
+*Time trials:*  
+- Usually 2-3 time trials
+- 1st stage in modern tours is usually a prologue (or short trial), deciding who wears the yellow jersey on opening day.
+
+## Teams
+
+You may ask, why have teams when there is only one individual champion for the General Classification?? 'Domestiques', a term frequently used to describe riders who support a team leader to win stages and accumulate points to hopefully win the tour. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy; This is known as 'Lead-out Trains'.
+
+For the bulk of the race, cyclists don't usually ride as fast as they can throughout the race, but cycle in a main group known as a peloton. 
+
+## What do jerseys represent?
+
+The same coloured jerseys are worn within teams, current road champions get to wear their team jerseys with their country's colour& reigning world champions wears their team jerseys with stripes.
+
+## The Jersey Hierarchy
+
+**Yellow: General classification - Race leader**  
+- All stages are timed, and the rider with the lowest aggregate time gains the privilege to wear this yellow jersey
+- "General Classification" is the oldest and main competition sought after by competitors, where the winner of this will win the overall title
+
+**Red& white polka-dot: Mountains classification - meilleur grimpeur (Best climber)**   
+- Worn by the rider who at the start of each stage, has the largest number of climbing points
+- With stages containing climbs, points are awarded to riders who reach the summit first.
+
+**Green: Points classification - Top sprinter**  
+- Worn by rider who has the greatest number of points at the start of each stage.
+- Points are given to first 15 riders to finish a stage
+- Additional points are also given to first 15 riders to cross a pre-determined 'sprint' point in each stage
+- The number of points awarded varies depending on the type of stage; Flat stages having the most points at the finish while time trials& mountain stages have the least.
+
+**White: Young rider classification - Most impressive rider, under 26 years old**  
+- Determined the same as general classification, where it is restricted to riders that are under 26 years old
+
 
 # Data description
+
+```{r load-library, include = FALSE, message = FALSE}
+library(tidyverse)
+library(lubridate)
+library(tdf) # install at: https://github.com/alastairrushworth/tdf
+```
+
+```{r read-in-github, message = FALSE, warning = FALSE}
+# Load and read-in data via https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md
+
+tdf_stages <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_stages.csv')
+```
+
+```{r cleaning-script, eval = FALSE}
+# Cleaning script can be found in https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md
+
+winners <- tdf::editions %>% 
+  select(-stage_results)
+
+all_years <- tdf::editions %>% 
+  unnest_longer(stage_results) %>% 
+  mutate(stage_results = map(stage_results, ~ mutate(.x, rank = as.character(rank)))) %>% 
+  unnest_longer(stage_results) 
+
+stage_all <- all_years %>% 
+  select(stage_results) %>% 
+  flatten_df()
+
+combo_df <- bind_cols(all_years, stage_all) %>% 
+  select(-stage_results)
+
+stage_clean <- combo_df %>% 
+  select(edition, start_date,stage_results_id:last_col()) %>% 
+  mutate(year = lubridate::year(start_date)) %>% 
+  rename(age = age...25) %>% 
+  select(edition, year, everything(), -start_date)
+```
+
+```{r read-in data}
+# Write .csv files and read-in data
+winners %>% 
+  write_csv(here::here("data/tdf_winners.csv"))
+
+stage_clean %>% 
+  write_csv(here::here("data/stage_data.csv"))
+```
+
+This data set originates from the `tdf` R package, which is essentially a container for the  `editions` data frame encompassing the historic data about Tour de France riders, stages and winners. This data set is hosted on this [github link](https://github.com/alastairrushworth/tdf) and is readily available for use.
+
+`tdf_winners` corresponds to the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019).
+
+```{r}
+glimpse(tdf_winners)
+```
+
+`tdf_winners` variables contains the overall winner's biographical data and information about the race for a given edition, which comprises of:  
+- `start date` start of the Tour De France edition
+- `winner name` name of the overall winner (*i.e. winner of the General Classification)
+- `distance` aggregate route distance (in km) covered by the entire race
+- `time margin` difference between winning time and runner up (in hours) 
+- `stage_wins` stages won by the overall winner
+- `stages led` number of stages spent in the yellow jersey
+- `height` overall winner's height (in meters)
+- `weight` overall winner's weight (in kilograms)
+- `born` overall winner's date of birth
+- `full_name` overall winner's full name
+- `nationality` overall winner's nationality
+
+*Do we have to name all of them?* 
+
+```{r}
+glimpse(stage_data)
+```
+```{r}
+glimpse(tdf_stages)
+```
+
+- Condensed version of `stage_data` tibble, comprising of only the winners of all stages.
+Include data...
+
+Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the data. However, we discovered errors in the `time` and `elapsed` variables in the `stage_data` where the period objects were incorrect. Thus, for this particular data set, we opted to use the cleaning script found in the same github link; We made some minor adjustments such as changing the object names to reproduce the same data set that was intended.
 
 # Analysis and findings
 
 [FILL] Should include at least one plot or numerical summary for each of your questions, that helps the reader arrive at an answer. You should also write paragraphs describing the methods, summaries and findings. 
 
 # References
+
+
+\clearpage
+
+
+# Potential Questions
+
+**Primary Question:**  
+What are the most important characteristics and attributes to win the tour and how have they evolved over time?
+
+**Secondary:**  
+1. What is the average speed of overall winners for each stage? 
+  - Are they faster in a certain terrain (e.g. hill, mountain, flat)? 
+  - How important are stage wins for the overall winner? - Note: complements Q3.
+  - Are there certain tracks/terrains that most riders fail to complete (i.e. NA in rank/elpased in stage data)?
+
+2. Is there a change in biological/physical traits of overall winners over the years? 
+  - Do overall winners, top sprinters or climbers have similar features (e.g. body type, age)?      Were they consistent over the years?
+  - Are competitors younger/older these days?
+  - Is a certain team producing winners more prevalently? - e.g. Do these teams have good salary, nutritionists etc.
+  - Is a certain nation producing winners more prevalently?
+
+3. How many stages does an overall winner usually lead by? Do they usually wear the yellow jersey from start to end?
+  - Is there a specific trend (e.g. Win in the last few stages or do they win certain terrains like mountain stages)?          
+    - *Note:* don't have to win any stages or have the most points to be overall winner
+  - How are they ranked in each stage?
+  
+
+Q: Should we focus on specific years (e.g. 2000-2019)?
+
+# Exploring the data
+
+## How have races& riders evolved over time?
+
+```{r tdf_dist}
+tdf_dist <- ggplot(data = tdf_winners) +
+  geom_point(aes(x = start_date,
+                 y = distance)) +
+  theme_classic()
+```
+
+```{r tdf-avg-speed}
+tdf_avg_speed <- ggplot(tdf_winners) +
+  geom_point(aes(x = start_date,
+                 y = distance / time_overall)) +
+  theme_classic()
+```
+
+```{r combine-dist-avg-speed}
+gridExtra::grid.arrange(tdf_dist, tdf_avg_speed, ncol = 2)
+```
+
+- The total distance covered are decreasing over the years& has been fluctuating around 3,500km over the past two decades
+- At first glance, it may seem that riders have it easy with the reduced distance.
+- However, the average speed for each rider had been increasing gradually over the years
+- This may be due to better professionalism in the sport, equipment& gears and smarter training.
+
+```{r}
+ggplot(tdf_winners) +
+  geom_bar(aes(x = start_date,
+               y = distance),
+           stat = "identity") +
+  theme_classic() 
+```
+
+```{r}
+ggplot(tdf_winners) +
+  geom_point(aes(x = start_date,
+                 y = nationality,
+                 colour = nationality)) +
+  theme_minimal()
+```
+
+- Many emerging countries such as Great Britian
+- Countries that dominated in the past (e.g. France) are not winning as much now
+
+
+# How many times do the overall winner wear the yellow jersey?
+
+```{r}
+stage_data <- stage_data %>%
+  mutate(hour_to_mins = hour(elapsed)*60,
+         sec_to_mins = second(elapsed)/60,
+         mins = minute(elapsed))
+
+# Compute total mins per stage for each rider
+stage_data <- stage_data %>%
+  rowwise() %>%
+  mutate(total_mins = sum(hour_to_mins, sec_to_mins, mins))
+
+stage_2019 <- stage_data %>%
+  filter(year == 2019) %>%
+  mutate(stage_no = str_extract(stage_results_id, "\\d+")) %>% # Parse stage digits
+  mutate(stage_no = as.factor(stage_no)) 
+  
+stage_2019 <- stage_2019 %>%
+  group_by(rider) %>%
+  mutate(cum_total_mins = cumsum(total_mins)) # Find cumulative sum after each stage
+
+# Maybe I can colour by the stage type? Need to take stage info from tdf_stages
+stage_2019 %>%
+  ggplot() +
+  geom_point(aes(x = stage_no,
+                 y = cum_total_mins),
+             alpha = 0.01,
+             colour = if_else(stage_2019$rider == "Bernal Egan", "blue", "black")
+             ) +
+
+# C
+```
+
+```{r}
+# Show who is wearing the yellow jersey using chicklet plot
+```
+
+- Line graph of each race 
+- x-axis = each stage of an edition, y-axis = cumulative timing for the race
+- Whoever has the lowest accumulative time at each stage (i.e. wear the yellow jersey), colour them, colour the overall winner in a different colour 
+
+- 2nd plot: geom_chicklet plot to show when the overall winner is wearing the yellow jersey
+
+## How are overall winners ranked in each stage?
+```{r test, eval = FALSE}
+# Join winner data& 
+stage_2019 
+
+stage_2019 %>%
+  filter(between(year, 2010, 2019)) %>%
+  ggplot() +
+  geom_boxplot(aes(x = rider,
+                   y = rank))
+```
+
+
+
+
+
