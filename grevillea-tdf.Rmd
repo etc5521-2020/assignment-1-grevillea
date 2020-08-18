@@ -1,0 +1,23 @@
+---
+title: "Tour de France"
+author: "Samuel Lyubic xxxxx"
+date: "18/08/2020"
+output: 
+  bookdown::html_document2:
+    theme: cosmo
+---
+
+```{r setup-libraries, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", fig.height = 8, fig.width = 8)
+
+library(tidyverse)
+library(readr)
+library(kableExtra)
+library(bookdown)
+```
+
+```{r read-in-data}
+tdf_winners <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_winners.csv')
+```
+
+  
