@@ -79,7 +79,10 @@ The same coloured jerseys are worn within teams, current road champions get to w
 ```{r load-library, include = FALSE, message = FALSE}
 library(tidyverse)
 library(lubridate)
-library(tdf) # install at: https://github.com/alastairrushworth/tdf
+library(tdf)
+# For web scraping
+library(polite)
+library(rvest)
 ```
 
 ```{r read-in-github, message = FALSE, warning = FALSE}
@@ -122,6 +125,39 @@ stage_clean %>%
   write_csv(here::here("data/stage_data.csv"))
 ```
 
+```{r data-wrangling}
+# Swap rider's name to <name> <surname> to be consistent with other dataset
+winner_names <- unique(combo_df$winner_name)
+
+combo_df %>%
+  mutate(rider = case_when(
+    str_detect(string = winner_name, 
+               pattern = combo_df$winner_name %in% winner_names ~ "TRUE"
+               )
+  ))
+```
+
+```{r scrape-tdf-2018-2019}
+require(polite)
+require(rvest)
+
+# Check if 2018 tdf data may be scraped appropriately
+wiki_tdf_2018 <- bow("https://en.wikipedia.org/wiki/2018_Tour_de_France")
+tdf_2018_html <- scrape(wiki_tdf_2018)
+
+tdf_stages_2018 <- as.data.frame(tdf_2018_html %>%
+                      html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+                      html_table(fill = TRUE)) # parse HTML table into a data frame
+
+# Check if 2019 tdf data may be scraped appropriately
+wiki_tdf_2019 <- bow("https://en.wikipedia.org/wiki/2019_Tour_de_France")
+tdf_2019_html <- scrape(wiki_tdf_2019)
+
+tdf_stages_2019 <- as.data.frame(tdf_2019_html %>%
+                      html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+                      html_table(fill = TRUE)) 
+```
+
 This data set originates from the `tdf` R package, which is essentially a container for the  `editions` data frame encompassing the historic data about Tour de France riders, stages and winners. This data set is hosted on this [github link](https://github.com/alastairrushworth/tdf) and is readily available for use.
 
 `tdf_winners` corresponds to the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019).
@@ -148,6 +184,7 @@ glimpse(tdf_winners)
 ```{r}
 glimpse(stage_data)
 ```
+
 ```{r}
 glimpse(tdf_stages)
 ```
@@ -155,7 +192,12 @@ glimpse(tdf_stages)
 - Condensed version of `stage_data` tibble, comprising of only the winners of all stages.
 Include data...
 
-Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the data. However, we discovered errors in the `time` and `elapsed` variables in the `stage_data` where the period objects were incorrect. Thus, for this particular data set, we opted to use the cleaning script found in the same github link; We made some minor adjustments such as changing the object names to reproduce the same data set that was intended.
+Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the data. However, we discovered errors in the `time` and `elapsed` variables in the `stage_data` where the period objects were incorrect. 
+
+Thus, for this particular data set, we opted to use the cleaning script found in the same github link; We made some minor adjustments such as changing the object names to reproduce the same data set that was intended. 
+
+Furthermore, `tdf_stages` data set only provided till the 2017 edition where the actual dataset covered all the way to 2019.
+
 
 # Analysis and findings
 
@@ -239,39 +281,71 @@ ggplot(tdf_winners) +
 - Countries that dominated in the past (e.g. France) are not winning as much now
 
 
-# How many times do the overall winner wear the yellow jersey?
+# How often do overall winners wear the yellow jersey?
 
 ```{r}
 stage_data <- stage_data %>%
   mutate(hour_to_mins = hour(elapsed)*60,
          sec_to_mins = second(elapsed)/60,
-         mins = minute(elapsed))
+         mins = minute(elapsed)) %>%
+  # To be consistent with other data sets, change rider name's format to (<name> <surname>)
 
 # Compute total mins per stage for each rider
 stage_data <- stage_data %>%
-  rowwise() %>%
   mutate(total_mins = sum(hour_to_mins, sec_to_mins, mins))
 
-stage_2019 <- stage_data %>%
-  filter(year == 2019) %>%
-  mutate(stage_no = str_extract(stage_results_id, "\\d+")) %>% # Parse stage digits
-  mutate(stage_no = as.factor(stage_no)) 
+stage_2017 <- stage_data %>%
+  filter(year == 2017) %>% # Filter to 2019 edition
+  mutate(stage = str_extract(stage_results_id, "\\d+")) %>% # Parse stage number
+  mutate(stage = as.factor(stage)) 
   
-stage_2019 <- stage_2019 %>%
+stage_2017 <- stage_2017 %>%
   group_by(rider) %>%
   mutate(cum_total_mins = cumsum(total_mins)) # Find cumulative sum after each stage
 
 # Maybe I can colour by the stage type? Need to take stage info from tdf_stages
-stage_2019 %>%
+stage_2017 %>%
   ggplot() +
-  geom_point(aes(x = stage_no,
+  geom_point(aes(x = stage,
                  y = cum_total_mins),
-             alpha = 0.01,
-             colour = if_else(stage_2019$rider == "Bernal Egan", "blue", "black")
-             ) +
+             alpha = 0.01
+             ) 
 
-# C
+# Create new data set with only winners
+# Layer over the graph with another geom_point, coloured in yellow
+# Join table using year and rider (because rider may win more than 1 year)
 ```
+
+```{r test, eval = FALSE}
+# Create new data set with only winners
+tdf_winners <- tdf_winners %>%
+  mutate(year = year(start_date))
+
+# Create new data set with winners for 2019
+winners_2017 <- tdf_winners %>%
+  filter(year == 2017) 
+
+# Insert stage records by joining table
+winners_2017 %>%
+  left_join()
+
+# Insert stage records by joining table with regular expression
+winner_name <- winners_2017$winner_name
+winner_match <- str_c("[", winner_name, "]",  
+                      collapse = "|")
+
+str_subset(string = stage_2017$rider, pattern = winner_match)
+str_view_all(stage_2017$rider, "Chris Froome", match = TRUE)
+
+
+
+
+
+
+# Layer over the graph with another geom_point, coloured in yellow
+
+```
+
 
 ```{r}
 # Show who is wearing the yellow jersey using chicklet plot
@@ -296,6 +370,10 @@ stage_2019 %>%
 ```
 
 
+# Notes
 
+- `tdf_stages` data set only covers till 2017, requires scraping of 2018& 2019
+  - 2018: https://en.wikipedia.org/wiki/2018_Tour_de_France
+  - 2019: https://en.wikipedia.org/wiki/2019_Tour_de_France
 
 
