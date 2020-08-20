@@ -17,6 +17,7 @@ library(bookdown)
 library(lubridate)
 library(tdf) #add the devtool install link for reproducibility
 library(tidyr)
+library(here)
 ```
 
 ```{r read-in-data}
@@ -53,5 +54,4 @@ winners %>%
 
 stage_clean %>% 
   write_csv(here::here("2020", "2020-04-07", "stage_data.csv"))
-
 ```
