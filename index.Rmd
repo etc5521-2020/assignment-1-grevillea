@@ -76,7 +76,10 @@ The same coloured jerseys are worn within teams, current road champions get to w
 
 # Data description
 
-```{r load-library, include = FALSE, message = FALSE}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load libraries
 library(tidyverse)
 library(lubridate)
 library(tdf)
@@ -88,7 +91,8 @@ library(rvest)
 ```{r read-in-github, message = FALSE, warning = FALSE}
 # Load and read-in data via https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md
 
-tdf_stages <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_stages.csv')
+tdf_stages <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_stages.csv') %>%
+  mutate(Stage = as.factor(Stage))
 ```
 
 ```{r cleaning-script, eval = FALSE}
@@ -146,23 +150,94 @@ wiki_tdf_2018 <- bow("https://en.wikipedia.org/wiki/2018_Tour_de_France")
 tdf_2018_html <- scrape(wiki_tdf_2018)
 
 tdf_stages_2018 <- as.data.frame(tdf_2018_html %>%
-                      html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
-                      html_table(fill = TRUE)) # parse HTML table into a data frame
+                    html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+                    html_table(fill = TRUE)) # parse HTML table into a data frame
+                    
 
 # Check if 2019 tdf data may be scraped appropriately
 wiki_tdf_2019 <- bow("https://en.wikipedia.org/wiki/2019_Tour_de_France")
 tdf_2019_html <- scrape(wiki_tdf_2019)
 
 tdf_stages_2019 <- as.data.frame(tdf_2019_html %>%
-                      html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
-                      html_table(fill = TRUE)) 
+                    html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+                    html_table(fill = TRUE)) # parse HTML table into a data frame
+```
+
+```{r wrangle-scraped-data}
+# Alter table to be consistent with `tdf_stages` df
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Stage = as.factor(Stage)) %>% # convert to factor
+  select(-c(NA., Type)) %>% # deselect irrelevant variables
+  filter(!is.na(Stage)) %>% # filter away rest days
+  rename(Type = Type.1) %>%
+  # extract origin& destination from Course variable
+  separate(Course, 
+           c("Origin", "Destination"), 
+           sep = " to ") 
+
+# Alter table to be consistent with `tdf_stages` df
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Stage = as.factor(Stage)) %>%
+  select(-c(NA., NA..1, Stage.type)) %>% # remove unnecessary variables
+  filter(!is.na(Stage)) %>% # filter away rest days
+  rename(Type = Stage.type.1) %>%
+  # extract origin& destination from Course variable
+  separate(Course, 
+           c("Origin", "Destination"), 
+           sep = " to ") 
+  
+# Extract winner countries from `winner variable`
+tdf_stages_2018$Winner_Country <- 
+# Get parenthesis and what is inside
+str_extract(string = tdf_stages_2018$Winner, 
+           pattern = "[(]...[)]") %>%  
+  # Extract words from the parenthesis only
+  str_extract(pattern = boundary("word")) 
+
+tdf_stages_2019$Winner_Country <-
+  #Get parenthesis and what is inside
+  str_extract(string = tdf_stages_2019$Winner,
+              pattern = "[(]...[)]") %>%
+  str_extract(pattern = boundary("word")) # Extract words only 
+
+
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Winner = str_remove(string = tdf_stages_2018$Winner, # Remove country details
+                             pattern = "[(]...[)]"),
+         Distance = str_remove(string = tdf_stages_2018$Distance,  # Remove miles details
+                             pattern = "[(].+[)]")) %>%
+  mutate(Distance = parse_number(Distance)) # Convert distance to numeric
+
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Winner = str_remove(string = tdf_stages_2019$Winner, # Remove country details
+                             pattern = "[(]...[)]"), 
+         Distance = str_remove(string = tdf_stages_2019$Distance, # Remove miles details
+                             pattern = "[(].+[)]")) %>%
+  mutate(Distance = parse_number(Distance)) # Convert distance to numeric
+
+# Adding year to Date variable
+## add year variable
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Date = paste(Date, 2018)) %>%
+  # convert character to date format consistent with tdf_stages
+  mutate(Date = lubridate::dmy(Date))
+
+# Adding year to date
+## add year variable
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Date = paste(Date, 2019)) %>%
+  # convert character to date format consistent with tdf_stages
+  mutate(Date = lubridate::dmy(Date))
+
+# Bind rows of all tdf stages
+tdf_stages <- rbind(tdf_stages, tdf_stages_2018, tdf_stages_2019)
 ```
 
 This data set originates from the `tdf` R package, which is essentially a container for the  `editions` data frame encompassing the historic data about Tour de France riders, stages and winners. This data set is hosted on this [github link](https://github.com/alastairrushworth/tdf) and is readily available for use.
 
 `tdf_winners` corresponds to the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019).
 
-```{r}
+```{r explore-tdf-winners}
 glimpse(tdf_winners)
 ```
 
@@ -368,12 +443,4 @@ stage_2019 %>%
   geom_boxplot(aes(x = rider,
                    y = rank))
 ```
-
-
-# Notes
-
-- `tdf_stages` data set only covers till 2017, requires scraping of 2018& 2019
-  - 2018: https://en.wikipedia.org/wiki/2018_Tour_de_France
-  - 2019: https://en.wikipedia.org/wiki/2019_Tour_de_France
-
 
