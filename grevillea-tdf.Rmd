@@ -7,7 +7,7 @@ output:
     theme: cosmo
 ---
 
-```{r setup-libraries, include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", fig.height = 8, fig.width = 8)
 
 # load libraries
