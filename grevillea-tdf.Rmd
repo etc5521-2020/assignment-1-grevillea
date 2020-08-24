@@ -10,6 +10,7 @@ output:
 ```{r setup-libraries, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", fig.height = 8, fig.width = 8)
 
+# load libraries
 library(tidyverse)
 library(readr)
 library(kableExtra)
@@ -21,13 +22,17 @@ library(here)
 ```
 
 ```{r read-in-data}
-tdf_winners <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_winners.csv')
+# Load and read-in data via https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md
+tdf_stages <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_stages.csv') %>%
+  mutate(Stage = as.factor(Stage))
 
-devtools::install_github("thebioengineer/tidytuesdayR")
-tuesdata <- tidytuesdayR::tt_load('2020-04-07')
+# tdf_winners <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_winners.csv')
+
+# devtools::install_github("thebioengineer/tidytuesdayR")
+# tuesdata <- tidytuesdayR::tt_load('2020-04-07')
 ```
 
-```{r data--cleaning}
+```{r data-cleaning, cache = TRUE}
 winners <- tdf::editions %>% 
   select(-stage_results)
 
@@ -48,10 +53,97 @@ stage_clean <- combo_df %>%
   mutate(year = lubridate::year(start_date)) %>% 
   rename(age = age...25) %>% 
   select(edition, year, everything(), -start_date)
-
-winners %>% 
-  write_csv(here::here("2020", "2020-04-07", "tdf_winners.csv"))
-
-stage_clean %>% 
-  write_csv(here::here("2020", "2020-04-07", "stage_data.csv"))
 ```
+
+
+```{r scrape-tdf-2018-2019}
+require(polite)
+require(rvest)
+# Check if 2018 tdf data may be scraped appropriately
+wiki_tdf_2018 <- bow("https://en.wikipedia.org/wiki/2018_Tour_de_France")
+tdf_2018_html <- scrape(wiki_tdf_2018)
+tdf_stages_2018 <- as.data.frame(tdf_2018_html %>%
+                    html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+                    html_table(fill = TRUE)) # parse HTML table into a data frame
+                    
+# Check if 2019 tdf data may be scraped appropriately
+wiki_tdf_2019 <- bow("https://en.wikipedia.org/wiki/2019_Tour_de_France")
+tdf_2019_html <- scrape(wiki_tdf_2019)
+tdf_stages_2019 <- as.data.frame(tdf_2019_html %>%
+                    html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+                    html_table(fill = TRUE)) # parse HTML table into a data frame
+```
+
+```{r wrangle-scraped-data}
+# Alter table to be consistent with `tdf_stages` df
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Stage = as.factor(Stage)) %>% # convert to factor
+  select(-c(NA., Type)) %>% # deselect irrelevant variables
+  filter(!is.na(Stage)) %>% # filter away rest days
+  rename(Type = Type.1) %>%
+  # extract origin& destination from Course variable
+  separate(Course, 
+           c("Origin", "Destination"), 
+           sep = " to ") 
+
+# Alter table to be consistent with `tdf_stages` df
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Stage = as.factor(Stage)) %>%
+  select(-c(NA., NA..1, Stage.type)) %>% # remove unnecessary variables
+  filter(!is.na(Stage)) %>% # filter away rest days
+  rename(Type = Stage.type.1) %>%
+  # extract origin& destination from Course variable
+  separate(Course, 
+           c("Origin", "Destination"), 
+           sep = " to ") 
+  
+# Extract winner countries from `winner variable`
+tdf_stages_2018$Winner_Country <- 
+# Get parenthesis and what is inside
+str_extract(string = tdf_stages_2018$Winner, 
+           pattern = "[(]...[)]") %>%  
+  # Extract words from the parenthesis only
+  str_extract(pattern = boundary("word")) 
+tdf_stages_2019$Winner_Country <-
+  #Get parenthesis and what is inside
+  str_extract(string = tdf_stages_2019$Winner,
+              pattern = "[(]...[)]") %>%
+  str_extract(pattern = boundary("word")) # Extract words only 
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Winner = str_remove(string = tdf_stages_2018$Winner, # Remove country details
+                             pattern = "[(]...[)]"),
+         Distance = str_remove(string = tdf_stages_2018$Distance,  # Remove miles details
+                             pattern = "[(].+[)]")) %>%
+  mutate(Distance = parse_number(Distance)) # Convert distance to numeric
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Winner = str_remove(string = tdf_stages_2019$Winner, # Remove country details
+                             pattern = "[(]...[)]"), 
+         Distance = str_remove(string = tdf_stages_2019$Distance, # Remove miles details
+                             pattern = "[(].+[)]")) %>%
+  mutate(Distance = parse_number(Distance)) # Convert distance to numeric
+
+# Adding year to Date variable
+## add year variable
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Date = paste(Date, 2018)) %>%
+  # convert character to date format consistent with tdf_stages
+  mutate(Date = lubridate::dmy(Date))
+
+# Adding year to date
+## add year variable
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Date = paste(Date, 2019)) %>%
+  # convert character to date format consistent with tdf_stages
+  mutate(Date = lubridate::dmy(Date))
+# Bind rows of all tdf stages
+tdf_stages <- rbind(tdf_stages, tdf_stages_2018, tdf_stages_2019)
+```
+
+```{r write-csv}
+# Write .csv files and read-in data
+winners %>% write_csv(here::here("data/tdf_winners.csv"))
+stage_clean %>% write_csv(here::here("data/stage_data.csv"))
+tdf_stages %>% write_csv(here::here("data/tdf_stages.csv"))
+```
+
+
