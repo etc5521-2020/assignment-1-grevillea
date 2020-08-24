@@ -50,8 +50,35 @@ stage_clean <- combo_df %>%
   select(edition, year, everything(), -start_date)
 
 winners %>% 
-  write_csv(here::here("2020", "2020-04-07", "tdf_winners.csv"))
+  write_csv(here::here("tdf_winners.csv"))
 
 stage_clean %>% 
-  write_csv(here::here("2020", "2020-04-07", "stage_data.csv"))
+  write_csv(here::here("stage_data.csv"))
 ```
+
+```{r read-in-csv}
+stage_clean <- read_csv(here::here("stage_data.csv"))
+tdf_winners <- read_csv(here::here("tdf_winners.csv"))
+```
+
+```{r structure-of-dataset}
+str(stage_clean)
+str(tdf_winners)
+```
+
+```{r cleaning-stage-clean}
+tdf_stages <- stage_clean %>%
+  mutate(elapsed = parse_number(elapsed)),
+         elapsed = hms(elapsed, format = "%H:%M:%S"))
+  
+```
+
+
+
+
+
+
+
+
+
+
