@@ -12,6 +12,25 @@ output:
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", fig.height = 8, fig.width = 8)
+
+# load libraries
+library(tidyverse)
+library(readr)
+library(kableExtra)
+library(bookdown)
+library(lubridate)
+library(tdf) #add the devtool install link for reproducibility
+library(tidyr)
+library(here)
+```
+
+```{r read-in, include = FALSE}
+stage_data <- read_csv(here::here("data/stage_data.csv"))
+tdf_stages <- read_csv(here::here("data/tdf_stages.csv"))
+tdf_winners <- read_csv(here::here("data/tdf_winners.csv"))
+```
 
 # Introduction and motivation
 
