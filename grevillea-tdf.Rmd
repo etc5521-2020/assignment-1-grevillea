@@ -18,6 +18,7 @@ library(lubridate)
 library(tdf) #add the devtool install link for reproducibility
 library(tidyr)
 library(here)
+library(gridExtra)
 ```
 
 ```{r read-in-data}
@@ -66,19 +67,100 @@ str(stage_clean)
 str(tdf_winners)
 ```
 
-```{r cleaning-stage-clean}
-tdf_stages <- stage_clean %>%
-  mutate(elapsed = parse_number(elapsed)),
-         elapsed = hms(elapsed, format = "%H:%M:%S"))
-  
+```{r height-vs-weight, fig.width = 12}
+win_weight <- winners %>%
+  ggplot(aes(x = as.factor(edition),
+             y = weight)) +
+  geom_point() +
+  geom_line() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+win_weight
+
+winners %>%
+  ggplot(aes(x = weight)) +
+  geom_histogram()
 ```
 
+```{r vital-team}
+team_wins <- winners %>%
+  group_by(winner_team) %>%
+  summarise(n = n()) 
 
+team_wins %>%
+  ggplot(aes(x = fct_reorder(as.factor(winner_team), n, .desc = TRUE),
+             y = n)) +
+    geom_col() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 
+```
 
+```{r winner-nationality}
+winners_nationality <- winners %>%
+  group_by(nationality) %>%
+  summarise(n = n())
 
+winners_nationality %>%
+  ggplot(aes(x = fct_reorder(as.factor(nationality), n, .desc = FALSE),
+             y = n)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
 
+```{r distance-v-age}
+distance_winner <- winners %>%
+  ggplot(aes(x = start_date, 
+             y = distance)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 
+age_winner <- winners %>%
+  ggplot(aes(x = start_date,
+                 y = age)) + 
+  geom_point(point = "blue") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 
+grid.arrange(distance_winner, age_winner, win_weight, ncol = 3)
+```
 
+```{r bmi}
+winners %>%
+ggplot(aes(x = start_date, y = weight / height^2, 
+             color = edition)) +
+  geom_point(na.rm = TRUE)
+```
 
+```{r stages-led-win-age}
+stages_led_winner <- winners %>%
+  ggplot(aes(x = start_date,
+             y = stages_led,
+             color = edition)) +
+  geom_point()
+
+stage_win_winner <- winners %>%
+  ggplot(aes(x = start_date,
+             y = stage_wins,
+             color = edition)) +
+  geom_point()
+
+stage_wins_age <- winners %>%
+  ggplot(aes(x = age,
+             y = stage_wins,
+             color = edition)) +
+  geom_point()
+
+```
+
+```{r age-team}
+age_team <- winners %>%
+  ggplot(aes(x = winner_team,
+              y = age)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+age_team
+
+country_team <- winners %>%
+  ggplot(aes(x = winner_team,
+              y = nationality)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
