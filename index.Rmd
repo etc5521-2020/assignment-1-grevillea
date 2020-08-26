@@ -239,7 +239,7 @@ ggplot(tdf_winners) +
 # Parse stage number
 stage_data <- stage_data %>%
   mutate(stage = str_extract(stage_results_id, "\\d+")) %>% 
-  mutate(stage = as.factor(stage)) 
+  mutate(stage = as.factor(stage)) # change to factor for joins
 
 # parse elapsed into lubridate::period variable
 stage_data <- stage_data %>%
@@ -322,7 +322,7 @@ ggplot(aes(y = as.factor(stage),
 
 Many hypothesise that overall winners are all-rounder cyclists who consistently win in all or most stages. In fact, the box plot contradicts this view, demonstrating that the ranks of overall winners have been shown vary greatly across stages. The x-axis of the box plot shows the stage number of a race, and the y-axis shows the collective ranks of all overall winners.
 
-Most winners are ranked below 50 for most of the stages except for the last stage. Moreover, it can be observed that in the last few stages, particularly 17-20, overall winners pick up their pace and achieve top 10 ranks.
+Most winners are ranked below 50 for most of the stages except for the last stage. Moreover, it can be observed that in the last few stages, particularly 17-20, overall winners pick up their pace and achieve top 10 ranks. Furthermore, this also suggests that overall winners kept a consistent pace throughout the race, where riders who exerted more energy in earlier stages are unable to keep up with the overall winners. 
 
 In stage 21, or more known as the "Champs-Élysées" stage, represents a symbolic street in Paris, France. As a tradition, riders set a truce to their competition to have a celebratory moment of tranquillity, chatting and even celebrating with glasses of champagnes in the final kilometres. Therefore, the rankings of overall winners are typically greater than 50.
 
@@ -374,15 +374,6 @@ ggplot(stage_winners_2000s,
   labs(x = "Rank",
        y = "Type")
 
-# library(ggridges)
-# ggplot(stage_winners_2000s) + 
-#   geom_density_ridges(aes(x = rank, 
-#                           y = type,
-#                           fill = type),
-#                       stat = "binline",
-#                       bins = 50,
-#                       alpha = 0.5) +
-#   scale_fill_brewer(palette = "Dark2") 
 ```
 
 It is almost always that the overall winners are great at climbing (mountain stages). This could be implied that mountain stages with the biggest potential for time gaps; Furthermore, this is also where bigger riders may struggle to climb up the mountains.
@@ -490,8 +481,114 @@ tdf_winners %>%
   select(winner_name)
 ```
 
-# Quotes online
+```{r}
+stage_data %>%
+  group_by(year) %>%
+  filter(stage == 1 | stage == max(stage))
+```
 
-which is why you'll see a rider like sprinter Max Walscheid, 92 kilograms, dominate in flat races, whilst Esteban Chaves, 55 kilograms, is only formidable when the road goes steeply uphill.
 
-Organizers spice up the course with something new, like successive mountaintop finishes or unique starting cities, like the 1998 start in Dublin, Ireland. - *Most failure rates*
+
+```{r}
+# Transform factor to original numeric values
+stage_data$stage <- as.numeric(levels(stage_data$stage))[stage_data$stage]
+
+# Find first& last stage of each year
+finish_summ <- stage_data %>%
+  group_by(year) %>%
+  # Filter to stage 1, not 0 because some riders don't race in prologue
+  filter(stage == 1 | stage == max(stage)) %>%
+  summarise(first_stage = min(stage),
+            last_stage = max(stage)) %>%
+  # pivot longer to facilitate join
+  pivot_longer(cols = first_stage:last_stage,
+               names_to = "first_last_stage",
+               values_to = "stage")
+
+# Filter to only first& last stages of each edition
+stage_finish <- stage_data %>%
+  inner_join(finish_summ, by = c("year", 
+                                 "stage")) %>%
+  # filter out years with error in rider data
+  filter(!year %in% c(1939, 1964, 1966, 1967, 1968, 1972, 1976, 1977)) 
+
+stage_finish <- stage_finish %>%
+  group_by(year, stage, first_last_stage) %>%
+  summarise(total_riders = n()) 
+```
+
+
+```{r}
+stage_finish_wide <- stage_finish %>%
+  pivot_wider(
+    id = year,
+    names_from = first_last_stage,
+    values_from = c(total_riders, stage)
+  ) %>%
+  rename(first_stage = stage_first_stage,
+         last_stage = stage_last_stage)
+```
+
+```{r}
+ggplot(data = stage_finish_wide,
+       aes(x = year)) +
+  geom_point(aes(y = total_riders_first_stage),
+             colour = "steelblue") +
+  geom_point(aes(y = total_riders_last_stage,
+                 colour = total_riders_last_stage),
+             colour = "red") +
+  geom_segment(
+    aes(y = total_riders_first_stage,
+        xend = year, 
+        yend = total_riders_last_stage), alpha = 0.5) 
+```
+
+
+```{r}
+ggplot(stage_finish_wide) +
+  geom_line(aes(x = year,
+                y = total_riders_first_stage),
+            colour = "blue") +
+  geom_line(aes(x = year,
+                y = total_riders_last_stage),
+            colour = "red") 
+```
+
+```{r finish-rate}
+stage_finish_wide <- stage_finish_wide %>%
+  mutate(finish_prop = total_riders_last_stage/total_riders_first_stage)
+
+stage_finish_wide %>%
+  ggplot(aes(x = year,
+                 y = finish_prop)) + 
+  geom_point() +
+  labs(y = "% of Riders who Finished all Stages",
+       x = "Year") +
+  geom_smooth(method = "lm",
+              span = 0.2)
+```
+
+```{r, eval = FALSE}
+test <- stage_data %>%
+  group_by(year, stage) %>%
+  tally() %>%
+  summarise(first_stage = min(n),
+            last_stage = max(n)) %>%
+  pivot_longer(cols = first_stage:last_stage,
+               names_to = "first_last_stage",
+               values_to = "total_riders")
+
+stage_total_riders <- stage_data %>%
+  group_by(year, stage) %>%
+  tally()
+
+stage_total_riders<- stage_total_riders %>%
+  inner_join(test, 
+             by = c("year", "n" = "total_riders"))
+
+stage_total_riders
+```
+
+
+
+
