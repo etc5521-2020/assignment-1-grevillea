@@ -82,6 +82,7 @@ The same coloured jerseys are worn within teams, current road champions get to w
 **Yellow: General classification - Race leader**  
 - All stages are timed, and the rider with the lowest aggregate time gains the privilege to wear this yellow jersey
 - "General Classification" is the oldest and main competition sought after by competitors, where the winner of this will win the overall title
+-  it's not uncommon to have five or more different leaders throughout the three weeks of racing.
 
 **Red& white polka-dot: Mountains classification - meilleur grimpeur (Best climber)**   
 - Worn by the rider who at the start of each stage, has the largest number of climbing points
@@ -232,7 +233,7 @@ ggplot(tdf_winners) +
 # Exploring data 
 
 ## How are overall winners ranked in each stage? 
-*From 2010-2019*
+*From 2000-2019*
 
 ```{r wrangle-stage-data, warning = FALSE}
 # Parse stage number
@@ -251,55 +252,142 @@ tdf_stages <- tdf_stages %>%
   mutate(date = as.Date(date)) %>%
   mutate(year = year(date))
 
-tdf_stages_2010s <- tdf_stages %>%
-  filter(between(year, 2010, 2019)) %>%
+tdf_stages_2000s <- tdf_stages %>%
+  filter(between(year, 2000, 2019)) %>%
   rename(stage_winner = winner,
          stage_winner_country = winner_country)
 
 # Change "P" to stage 0
-## Represents initial time trial of the race
-tdf_stages_2010s$stage <- ifelse(tdf_stages_2010s$stage == "P", "0", as.factor(tdf_stages_2010s$stage)) 
+## Represents prologue of the race, usually determines yellow jersey for race 1
+tdf_stages_2000s$stage <- ifelse(tdf_stages_2000s$stage == "P", "0", as.factor(tdf_stages_2000s$stage)) 
 
+# include year variable for join
 tdf_winners <- tdf_winners %>%
   mutate(year = year(start_date))
 
 # Extract overall winners' names
-winners_2010s <- tdf_winners %>%
-  filter(between(year, 2010, 2019)) %>%
+winners_2000s <- tdf_winners %>%
+  filter(between(year, 2000, 2019)) %>%
   select(winner_name, year)
 
 # Change order of winner names to match with stage_data rider names
-winners_2010s$winner_name <-
-  str_replace(string = winners_2010s$winner_name, pattern = "([^ ]+) ([^ ]+)", replacement = "\\2 \\1")
+winners_2000s$winner_name <-
+  str_replace(string = winners_2000s$winner_name, pattern = "([^ ]+) ([^ ]+)", replacement = "\\2 \\1")
 
 # Extract stages details 
-stage_winners_2010s <- stage_data %>%
-  filter(between(year, 2010, 2019)) %>%
+stage_winners_2000s <- stage_data %>%
+  filter(between(year, 2000, 2019)) %>%
   # include stage data of overall winner only
-  inner_join(winners_2010s, by = c("year", "rider" = "winner_name")) %>% 
-  left_join(tdf_stages_2010s, by = c("year", "stage")) %>% # Add stage details
+  inner_join(winners_2000s, by = c("year", "rider" = "winner_name")) %>% 
+  left_join(tdf_stages_2000s, by = c("year", "stage")) %>% # Add stage details
   mutate(rank = as.numeric(rank)) # Change rank to numeric for plotting
 
+# Filter out one NA rank
+stage_winners_2000s <- stage_winners_2000s %>%
+  filter(!is.na(rank)) %>%
+  # Add decade variable, for plotting
+  mutate(decade = case_when(
+           between(year, 2000, 2009) ~ "2000 - 2009",
+           between(year, 2010, 2020) ~ "2010 - 2019")) %>%
+  mutate(year = as.factor(year))
+```
+
+```{r winners-rank, fig.width = 8}
+# ggplot(stage_winners_2000s,
+#        aes(x = year,
+#            y = rank)) +
+#     geom_boxplot(aes(group = year)) +
+#   facet_wrap(~ decade,
+#              nrow = 2,
+#              scales = "free_x",
+#              strip.position = "left") +
+#   geom_point() +
+#   theme_bw()
+```
+
+```{r, fig.height = 3}
+stage_winners_2000s %>%
+  mutate(stage = as.integer(stage)) %>% 
+  arrange(desc(stage)) %>%
+ggplot(aes(y = as.factor(stage),
+           x = rank,
+           group = stage)) +
+  geom_boxplot() +
+  geom_point(alpha = 0.3) +
+  theme_bw() +
+  scale_x_continuous(breaks = c(seq(from = 0, to = 150, by = 10))) +
+  labs(y = "Stage",
+       x = "Rank") 
+```
+
+Many hypothesise that overall winners are all-rounder cyclists who consistently win in all or most stages. In fact, the box plot contradicts this view, demonstrating that the ranks of overall winners have been shown vary greatly across stages. The x-axis of the box plot shows the stage number of a race, and the y-axis shows the collective ranks of all overall winners.
+
+Most winners are ranked below 50 for most of the stages except for the last stage. Moreover, it can be observed that in the last few stages, particularly 17-20, overall winners pick up their pace and achieve top 10 ranks.
+
+In stage 21, or more known as the "Champs-Élysées" stage, represents a symbolic street in Paris, France. As a tradition, riders set a truce to their competition to have a celebratory moment of tranquillity, chatting and even celebrating with glasses of champagnes in the final kilometres. Therefore, the rankings of overall winners are typically greater than 50.
+
+
+```{r stage-types-2010s}
+# Categorise stages into 4 main stages in tdf
+stage_winners_2000s <- stage_winners_2000s %>%
+  mutate(type = case_when(
+    str_detect(type, "mountain") ~ "Mountain",
+    str_detect(type, "Mountain") ~ "Mountain",
+    str_detect(type, "Flat") ~ "Flat",
+    str_detect(type, "trial") ~ "time trial",
+    str_detect(type, "Hilly") ~ "Hilly")) %>%
+  filter(!is.na(type)) # filter out 2 uncategorised stage type 
+
+# Compute total distance for an edition
+stage_winners_2000s <- stage_winners_2000s %>%
+  group_by(edition) %>%
+  mutate(total_dist = sum(distance, na.rm = TRUE)) # remove one row with NA distance
 ```
 
 ```{r}
-ggplot(stage_winners_2010s) +
-    geom_boxplot(aes(x = year,
-                     y = rank,
-                     group = as.factor(year))) +
-  geom_jitter(aes(x = year,
-                  y = rank)) +
-  theme_bw()
+ggplot(stage_winners_2000s) +
+  geom_bar(aes(x = year,
+               y = total_dist,
+               fill = type,
+               group = type),
+           stat = "identity",
+           position = "fill") +
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(y = "Total Distance",
+       x = "Year")
 ```
 
-At which stage, are they ranked the best? What kind of terrain is it?
+Despite century steeped traditions, tour organisers arrange the race course in a different manner each year. Nonetheless, it is with a goal in mind: to include a balance of the different types of races. In most editions, the largest proportion of the rest be are mountain stages, followed by flat stages. In 2007, the edition only consisted of mountain stages and time trials.
 
-next plot: https://twitter.com/zahlooh/status/1249713409584771072
-- group by terrain, see which terrains overall winners are good/bad at.
 
-next plot: https://twitter.com/delaBJL/status/1247552025560338432
-- chicklet plot
-- How many of each terrains in a race?
+```{r}
+ggplot(stage_winners_2000s,
+       aes(x = type,
+           y = rank,
+           fill = type)) +
+  geom_boxplot() +
+  geom_jitter(alpha = 0.6) +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  labs(x = "Rank",
+       y = "Type")
+
+# library(ggridges)
+# ggplot(stage_winners_2000s) + 
+#   geom_density_ridges(aes(x = rank, 
+#                           y = type,
+#                           fill = type),
+#                       stat = "binline",
+#                       bins = 50,
+#                       alpha = 0.5) +
+#   scale_fill_brewer(palette = "Dark2") 
+```
+
+It is almost always that the overall winners are great at climbing (mountain stages). This could be implied that mountain stages with the biggest potential for time gaps; Furthermore, this is also where bigger riders may struggle to climb up the mountains.
+
+Another important ingredient is to 
 
 
 ## How often do overall winners wear the yellow jersey?
@@ -362,10 +450,6 @@ str_view_all(stage_2017$rider, "Chris Froome", match = TRUE)
 ```
 
 
-```{r}
-# Show who is wearing the yellow jersey using chicklet plot
-```
-
 - Line graph of each race 
 - x-axis = each stage of an edition, y-axis = cumulative timing for the race
 - Whoever has the lowest accumulative time at each stage (i.e. wear the yellow jersey), colour them, colour the overall winner in a different colour 
@@ -400,13 +484,14 @@ tibble
 ```
 
 
-
-
 ```{r}
 tdf_winners %>%
   filter(between(year, 1950 , 2019)) %>%
   select(winner_name)
 ```
 
+# Quotes online
 
+which is why you'll see a rider like sprinter Max Walscheid, 92 kilograms, dominate in flat races, whilst Esteban Chaves, 55 kilograms, is only formidable when the road goes steeply uphill.
 
+Organizers spice up the course with something new, like successive mountaintop finishes or unique starting cities, like the 1998 start in Dublin, Ireland. - *Most failure rates*
