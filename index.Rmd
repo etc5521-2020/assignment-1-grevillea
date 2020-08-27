@@ -6,8 +6,9 @@ author:
   - Brendi Ang
   - Samuel Lyubic
 date: "`r Sys.Date()`"
-output: 
-  html_document
+output:
+    bookdown::html_document2: default
+
 ---
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
@@ -101,11 +102,12 @@ The same coloured jerseys are worn within teams, current road champions get to w
 # Data description
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 # load libraries
 library(tidyverse)
 library(lubridate)
+library(kableExtra)
 library(tdf)
 # For web scraping
 library(polite)
@@ -125,7 +127,6 @@ This data set originates from the `tdf` R package, which is essentially a contai
 ```{r explore-tdf-winners}
 glimpse(tdf_winners)
 ```
-
 - `tdf_winners` variables contains the overall winner's biographical data and information about the race for a given edition, which comprises of:  
 - `start date` start of the Tour De France edition
 - `winner name` name of the overall winner (*i.e. winner of the General Classification)
@@ -166,14 +167,14 @@ Furthermore, `tdf_stages` data set only provided till the 2017 edition where the
 # References
 
 
-\clearpage
+
 
 
 # Exploring the data
 
 ## How have races& riders evolved over time?
 
-```{r}
+```{r, eval = FALSE}
 ggplot(tdf_winners) +
   geom_bar(aes(x = year,          
                y = distance),
@@ -230,10 +231,7 @@ ggplot(tdf_winners) +
 - Many emerging countries such as Great Britian
 - Countries that dominated in the past (e.g. France) are not winning as much now
 
-# Exploring data 
-
-## How are overall winners ranked in each stage? 
-*From 2000-2019*
+# The Quest for the Yellow Jersey
 
 ```{r wrangle-stage-data, warning = FALSE}
 # Parse stage number
@@ -246,7 +244,7 @@ stage_data <- stage_data %>%
   mutate(elapsed = hms(elapsed))
 ```
 
-```{r tdf-stages-2010s, warning = FALSE}
+```{r tdf-stages-2000s, warning = FALSE}
 # Add year variable for joining table
 tdf_stages <- tdf_stages %>% 
   mutate(date = as.Date(date)) %>%
@@ -290,22 +288,75 @@ stage_winners_2000s <- stage_winners_2000s %>%
            between(year, 2000, 2009) ~ "2000 - 2009",
            between(year, 2010, 2020) ~ "2010 - 2019")) %>%
   mutate(year = as.factor(year))
+
+stage_winners_2000s$stage_winner <- str_replace(string = stage_winners_2000s$stage_winner, pattern = "\\[.+\\]", replacement = "")
+
+stage_winners_2000s <- stage_winners_2000s %>%
+  # remove unnecessary paranthesis
+  mutate(stage_winner = str_replace(string = stage_winners_2000s$stage_winner, pattern = "\\[.+\\]", replacement = "")) %>%
+  # change sequence of names to match winner names
+  mutate(stage_winner = str_replace(string = stage_winners_2000s$stage_winner, pattern = "([^ ]+) ([^ ]+)", replacement = "\\2 \\1"))
 ```
 
-```{r winners-rank, fig.width = 8}
-# ggplot(stage_winners_2000s,
-#        aes(x = year,
-#            y = rank)) +
-#     geom_boxplot(aes(group = year)) +
-#   facet_wrap(~ decade,
-#              nrow = 2,
-#              scales = "free_x",
-#              strip.position = "left") +
-#   geom_point() +
-#   theme_bw()
+# A fallacy: Overall Winners leads all stages
+
+```{r}
+tdf_winners <- tdf_winners %>%
+  mutate(year = year(start_date)) %>%
+  # Add decade variable for plotting
+  mutate(decade = round(year -4.5, -1)) %>%
+  mutate(decade = case_when(
+    decade == 1900 ~ "1900-1909",
+    decade == 1910 ~ "1910-1919",
+    decade == 1920 ~ "1920-1929",
+    decade == 1930 ~ "1930-1939",
+    decade == 1940 ~ "1940-1949",
+    decade == 1950 ~ "1950-1959",
+    decade == 1960 ~ "1960-1969",
+    decade == 1970 ~ "1970-1979",
+    decade == 1980 ~ "1980-1989",
+    decade == 1990 ~ "1990-1999",
+    decade == 2000 ~ "2000-2009",
+    decade == 2010 ~ "2010-2019")
+  )
+  
+ggplot(tdf_winners) +
+  geom_point(aes(x = year,
+                 y = stages_led,
+                 ),
+           alpha = 0.8) +
+  geom_point(data = subset(tdf_winners, year %in% c(1928, 1934)), # Riders who led 22 stages
+             aes(x = year,
+                 y = stages_led,
+                 ),
+             colour = "#ff3333") +
+  # Add text on years 1928 and 1934
+  geom_text(data =  subset(tdf_winners, year %in% 1928), 
+            aes(x = year * 0.9977, y = stages_led * 1.003, 
+                label = "1928", 
+                fontface = "bold")) +
+  geom_text(data =  subset(tdf_winners, year %in% 1934), 
+            aes(x = year * 1.002, y = stages_led * 1.003, 
+                label = "1934", 
+                fontface = "bold")) +
+    geom_line(aes(x = year,
+                 y = stages_led
+                 ),
+              alpha = 0.5) +
+  scale_x_continuous(breaks =seq(from = 1900, to = 2020, by = 10),
+                     labels =seq(from = 1900, to = 2020, by = 10)) +
+  labs(y = "Number of times yellow jersey worn (Stages Led)",
+       x = "Year") +
+  theme_minimal() 
 ```
 
-```{r, fig.height = 3}
+Many speculate that overall winners are all-rounder cyclists who consistently don the yellow jersey by winning all stages. Nevertheless, winning all 22 stages is not infeasible as Nicolas Frantz and Antonin Magne have both proven it in 1928 and 1934 respectively.
+
+However, in majority of the editions, the line plot above invalidates the conjecture, demonstrating that the stage led by overall winners have been shown vary greatly across most editions. The plot further reveals that overall winners can lead as little as 1 stage, indicating that they only led the tour at the very last stage. Moreover, overall winners seem to lead in lower number of stages in the recent years as compared to earlier years.
+
+## How do Overall Winners Fare in stages
+
+```{r}
 stage_winners_2000s %>%
   mutate(stage = as.integer(stage)) %>% 
   arrange(desc(stage)) %>%
@@ -314,74 +365,126 @@ ggplot(aes(y = as.factor(stage),
            group = stage)) +
   geom_boxplot() +
   geom_point(alpha = 0.3) +
-  theme_bw() +
+  theme_minimal() +
   scale_x_continuous(breaks = c(seq(from = 0, to = 150, by = 10))) +
   labs(y = "Stage",
        x = "Rank") 
 ```
 
-Many hypothesise that overall winners are all-rounder cyclists who consistently win in all or most stages. In fact, the box plot contradicts this view, demonstrating that the ranks of overall winners have been shown vary greatly across stages. The x-axis of the box plot shows the stage number of a race, and the y-axis shows the collective ranks of all overall winners.
+The box plot depicts the ranks of al overall winners from 2000 - 2019 for each stage. In most cases, overall winners are ranked lower than 30, which may imply that the winners have a consistent pace that puts them in these ranks. Moreover, it can be observed that in the last few stages, particularly 17-20, overall winners pick up their pace and usually attain top 10 rankings This may suggest that overall winners are wearing the yellow jersey at this point forward. By the same token, this reiterates that the consistent pace of overall winners, where riders who exerted more energy in earlier stages are unable to keep up with the overall winners. 
 
-Most winners are ranked below 50 for most of the stages except for the last stage. Moreover, it can be observed that in the last few stages, particularly 17-20, overall winners pick up their pace and achieve top 10 ranks. Furthermore, this also suggests that overall winners kept a consistent pace throughout the race, where riders who exerted more energy in earlier stages are unable to keep up with the overall winners. 
+Why are the ranks of overall winners in stage 21 rather high and peculiar? Stage 21, or better known as the "Champs-Élysées" stage, representing a symbolic street in Paris, France. As a tradition, riders set a truce to their competition to have a celebratory moment of tranquillity, chatting and even celebrating with glasses of champagnes in the final kilometres. For this reason, the rankings of overall winners are diverse.
 
-In stage 21, or more known as the "Champs-Élysées" stage, represents a symbolic street in Paris, France. As a tradition, riders set a truce to their competition to have a celebratory moment of tranquillity, chatting and even celebrating with glasses of champagnes in the final kilometres. Therefore, the rankings of overall winners are typically greater than 50.
+## How are Overall Winners ranked by Stage Type?
 
-
-```{r stage-types-2010s}
+```{r winners-by-stage, fig.width = 8}
 # Categorise stages into 4 main stages in tdf
 stage_winners_2000s <- stage_winners_2000s %>%
   mutate(type = case_when(
     str_detect(type, "mountain") ~ "Mountain",
     str_detect(type, "Mountain") ~ "Mountain",
     str_detect(type, "Flat") ~ "Flat",
-    str_detect(type, "trial") ~ "time trial",
+    str_detect(type, "trial") ~ "Time trial",
     str_detect(type, "Hilly") ~ "Hilly")) %>%
   filter(!is.na(type)) # filter out 2 uncategorised stage type 
+```
 
+```{r stage-distance-2000s}
 # Compute total distance for an edition
 stage_winners_2000s <- stage_winners_2000s %>%
   group_by(edition) %>%
   mutate(total_dist = sum(distance, na.rm = TRUE)) # remove one row with NA distance
 ```
 
-```{r}
+```{r stage-types-200s}
 ggplot(stage_winners_2000s) +
   geom_bar(aes(x = year,
                y = total_dist,
                fill = type,
                group = type),
            stat = "identity",
-           position = "fill") +
+           position = "fill",
+           alpha = 0.8) +
+  theme_minimal() +
   theme(axis.text.x = element_text(angle = 90)) +
   scale_fill_brewer(palette = "Dark2") +
   labs(y = "Total Distance",
-       x = "Year")
+       x = "Year") +
+  theme(panel.grid = element_blank()) 
 ```
 
-Despite century steeped traditions, tour organisers arrange the race course in a different manner each year. Nonetheless, it is with a goal in mind: to include a balance of the different types of races. In most editions, the largest proportion of the rest be are mountain stages, followed by flat stages. In 2007, the edition only consisted of mountain stages and time trials.
+Despite century steeped traditions, tour organisers arrange the race course in a different manner each year. Nonetheless, it is with a goal in mind, to include a balance of the different types of races. In most editions, the largest proportion of the rest are mountain stages, followed by flat stages. In 2007, the edition only consisted of mountain stages and time trials. The bar chart above displays the stage type from 2000 - 2019.
 
-
-```{r}
-ggplot(stage_winners_2000s,
-       aes(x = type,
-           y = rank,
-           fill = type)) +
-  geom_boxplot() +
-  geom_jitter(alpha = 0.6) +
+```{r ranks, fig.cap = "Rankings of Overall Winners (2000 - 2019) by Stage Type"}
+stage_winners_2000s %>%
+  ggplot(aes(x = type,
+           y = rank)) +
+  geom_violin(aes(fill = type),
+              width = 1.2,
+              alpha = 0.7) +
+  geom_boxplot(width = 0.2) +
+  geom_point(alpha = 0.2) +
   scale_fill_brewer(palette = "Dark2") +
+  scale_y_continuous(breaks = c(seq(from = 0, to = 100, by = 10),
+                                seq(from = 100, to = 150, by = 25))) +
   theme_bw() +
-  theme(legend.position = "bottom") +
-  labs(x = "Rank",
-       y = "Type")
-
+  theme(legend.position = "bottom",
+        panel.grid.minor.y = element_blank()) +
+  labs(x = "Type",
+       y = "Rank") +
+  ggtitle("Rankings of Overall Winners (2000 - 2019) by Stage Type")
 ```
 
-It is almost always that the overall winners are great at climbing (mountain stages). This could be implied that mountain stages with the biggest potential for time gaps; Furthermore, this is also where bigger riders may struggle to climb up the mountains.
+```{r rank-summary}
+# Filter to stages that overall winners won
+rank_summ <- stage_winners_2000s %>%
+  filter(rank > 5) %>%
+  group_by(type) %>%
+  tally() %>%
+  arrange(desc(n)) 
 
-Another important ingredient is to 
+rank_summ <- stage_winners_2000s %>%
+  group_by(type) %>%
+  tally() %>%
+  inner_join(rank_summ, by = "type") %>%
+  rename(total_stage_type = n.x,
+         ranked_below_5 = n.y) %>%
+  mutate(prop_rank_type = round((ranked_below_5/total_stage_type)*100, digits = 2))
 
 
-## How often do overall winners wear the yellow jersey?
+rank_summ %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("hover", "striped"))
+```
+
+Figure \@ref(fig:ranks) *ref* Overall winners are commonly versatile riders who performs relatively well at each stage type. This is also manifest in table *ref*, which establishes that overall winners are ranked 5 and below in approximately 7 in 10 races for all types of stage. This plot also reinforces the idea that overall winners does not always perform great in all stages, as seen with the variability of ranks at each type of stage.
+
+It is almost always that the overall winners are formidable at climbing mountain Considering the steep climbs, thin air at high altitudes and narrow descents in mountain stages, these stages have the largest potential for time gaps and for riders to make the grade and set them apart from other riders. Table *ref* demonstrates that overall winners thrive in mountain stages, where they are ranked 5 or less in at least three out of four mountain stages. Although this may be true, figure *ref* demonstrates that one can also expect large variability in rankings of overall winners when it comes to these gruelling mountain stages.
+
+Individual time trials tests their endurance and solo strengths by forcing them to negotiate the course comprising of curved roads, small-scale slopes and multiple terrain types while keeping a steady and appropriate pace. Overall winners' ranks in time trials conveys that they customarily have great teams. Team time trials brings team strategy back into the equation; Team's domestiques (French for servants) work in unison to allow for drafting (shield from wind resistance by riders in front) to facilitate a smoother ride for the team leader and ensure he arrives at crucial moments of the race with little energy expended. Similarly, teams must find an ideal pace despite the diverse body types and skills.
+
+With flat stages accounting for nearly one third (`r rank_summ$total_stage_type[1]/nrow(stage_winners_2000s)`) of all stages in a given edition, it is essential for overall winners to be skilled at sprints. Although *Q2* highlighted that flat stages are typically dominated by sprinters, who are usually a muscular rider with a larger body type,  overall winners have proven to be they are successful in these stages too. They are ranked at a median rank of 15 (fig *ref*) and have attained rank 5 and below in about 73% of the time for all flat stages in the last two decades.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Did not work
+
+
 
 ```{r stage-data-cumsum, eval = FALSE}
 # Find total time taken to complete a stage
@@ -441,55 +544,8 @@ str_view_all(stage_2017$rider, "Chris Froome", match = TRUE)
 ```
 
 
-- Line graph of each race 
-- x-axis = each stage of an edition, y-axis = cumulative timing for the race
-- Whoever has the lowest accumulative time at each stage (i.e. wear the yellow jersey), colour them, colour the overall winner in a different colour 
 
-- 2nd plot: geom_chicklet plot to show when the overall winner is wearing the yellow jersey
-
-
-
-
-
-# Regex practice
-
-
-```{r}
-library(tidyverse)
-
-name_surname <- c("John Smith One", "Jane Smith Two", "John Doe", "Nick Doe", "Chris Froome", "Van den Broeck", "Lance", "Van Dae Le Phillipe")
-
-surname_name <- c("Smith One John", "Smith Two Jane", "Doe John", "Nick Doe", "Froome Chris", "Broeck Van den", "Lance", "Phillipe Van Dae Le")
-
-tibble <- tibble(variable1 = name_surname, variable2 = surname_name)
-
-tibble
-```
-
-```{r}
-tibble$variable3 <- mapply(function(x, y) paste(y[match(x, y)], collapse = " "), 
-    strsplit(tibble$variable1, '\\s+'), 
-    strsplit(tibble$variable2, '\\s+'))
-
-tibble
-```
-
-
-```{r}
-tdf_winners %>%
-  filter(between(year, 1950 , 2019)) %>%
-  select(winner_name)
-```
-
-```{r}
-stage_data %>%
-  group_by(year) %>%
-  filter(stage == 1 | stage == max(stage))
-```
-
-
-
-```{r}
+```{r, eval = FALSE}
 # Transform factor to original numeric values
 stage_data$stage <- as.numeric(levels(stage_data$stage))[stage_data$stage]
 
@@ -518,7 +574,7 @@ stage_finish <- stage_finish %>%
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 stage_finish_wide <- stage_finish %>%
   pivot_wider(
     id = year,
@@ -526,10 +582,12 @@ stage_finish_wide <- stage_finish %>%
     values_from = c(total_riders, stage)
   ) %>%
   rename(first_stage = stage_first_stage,
-         last_stage = stage_last_stage)
+         last_stage = stage_last_stage) %>%
+  # include % of riders who finished entire race
+  mutate(finish_prop = total_riders_last_stage/total_riders_first_stage)
 ```
 
-```{r}
+```{r, eval = FALSE}
 ggplot(data = stage_finish_wide,
        aes(x = year)) +
   geom_point(aes(y = total_riders_first_stage),
@@ -543,21 +601,7 @@ ggplot(data = stage_finish_wide,
         yend = total_riders_last_stage), alpha = 0.5) 
 ```
 
-
-```{r}
-ggplot(stage_finish_wide) +
-  geom_line(aes(x = year,
-                y = total_riders_first_stage),
-            colour = "blue") +
-  geom_line(aes(x = year,
-                y = total_riders_last_stage),
-            colour = "red") 
-```
-
-```{r finish-rate}
-stage_finish_wide <- stage_finish_wide %>%
-  mutate(finish_prop = total_riders_last_stage/total_riders_first_stage)
-
+```{r finish-rate, eval = FALSE}
 stage_finish_wide %>%
   ggplot(aes(x = year,
                  y = finish_prop)) + 
@@ -565,29 +609,14 @@ stage_finish_wide %>%
   labs(y = "% of Riders who Finished all Stages",
        x = "Year") +
   geom_smooth(method = "lm",
-              span = 0.2)
+              span = 0.2) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) + # Remove panel grids
+  scale_x_continuous(breaks =seq(from = 1900, to = 2020, by = 10),
+                     labels = seq(from = 1900, to = 2020, by = 10)) 
 ```
 
-```{r, eval = FALSE}
-test <- stage_data %>%
-  group_by(year, stage) %>%
-  tally() %>%
-  summarise(first_stage = min(n),
-            last_stage = max(n)) %>%
-  pivot_longer(cols = first_stage:last_stage,
-               names_to = "first_last_stage",
-               values_to = "total_riders")
 
-stage_total_riders <- stage_data %>%
-  group_by(year, stage) %>%
-  tally()
-
-stage_total_riders<- stage_total_riders %>%
-  inner_join(test, 
-             by = c("year", "n" = "total_riders"))
-
-stage_total_riders
-```
 
 
 
