@@ -1,0 +1,406 @@
+---
+title: "grevillea"
+author: "Samuel Lyubic"
+date: "27/08/2020"
+output: html_document
+---
+---
+title: "Tour de France"
+author: "Samuel Lyubic xxxxx"
+date: "18/08/2020"
+output: 
+  bookdown::html_document2:
+    theme: cosmo
+---
+
+```{r setup-libraries, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.align = "center", fig.height = 8, fig.width = 8)
+
+library(tidyverse)
+library(readr)
+library(kableExtra)
+library(bookdown)
+library(lubridate)
+library(tdf) #add the devtool install link for reproducibility
+library(tidyr)
+library(here)
+library(gridExtra)
+library(plotly)
+```
+
+```{r read-in-data}
+# Load and read-in data via https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md
+tdf_stages <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_stages.csv') %>%
+  mutate(Stage = as.factor(Stage))
+
+# tdf_winners <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-04-07/tdf_winners.csv')
+
+# devtools::install_github("thebioengineer/tidytuesdayR")
+# tuesdata <- tidytuesdayR::tt_load('2020-04-07')
+```
+
+```{r data-cleaning, cache = TRUE}
+winners <- tdf::editions %>% 
+  select(-stage_results)
+
+all_years <- tdf::editions %>% 
+  unnest_longer(stage_results) %>% 
+  mutate(stage_results = map(stage_results, ~ mutate(.x, rank = as.character(rank)))) %>% 
+  unnest_longer(stage_results)
+
+stage_all <- all_years %>% 
+  select(stage_results) %>% 
+  flatten_df()
+
+combo_df <- bind_cols(all_years, stage_all) %>% 
+  select(-stage_results)
+
+stage_clean <- combo_df %>% 
+  select(edition, start_date,stage_results_id:last_col()) %>% 
+  mutate(year = lubridate::year(start_date)) %>% 
+  rename(age = age...25) %>% 
+  select(edition, year, everything(), -start_date)
+```
+
+
+```{r scrape-tdf-2018-2019}
+require(polite)
+require(rvest)
+# Check if 2018 tdf data may be scraped appropriately
+wiki_tdf_2018 <- bow("https://en.wikipedia.org/wiki/2018_Tour_de_France")
+tdf_2018_html <- scrape(wiki_tdf_2018)
+tdf_stages_2018 <- as.data.frame(tdf_2018_html %>%
+                    html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+                    html_table(fill = TRUE)) # parse HTML table into a data frame
+                    
+# Check if 2019 tdf data may be scraped appropriately
+wiki_tdf_2019 <- bow("https://en.wikipedia.org/wiki/2019_Tour_de_France")
+tdf_2019_html <- scrape(wiki_tdf_2019)
+tdf_stages_2019 <- as.data.frame(tdf_2019_html %>%
+                    html_nodes(xpath = '//*[@id="mw-content-text"]/div[1]/table[2]') %>%
+                    html_table(fill = TRUE)) # parse HTML table into a data frame
+```
+
+```{r wrangle-scraped-data}
+# Alter table to be consistent with `tdf_stages` df
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Stage = as.factor(Stage)) %>% # convert to factor
+  select(-c(NA., Type)) %>% # deselect irrelevant variables
+  filter(!is.na(Stage)) %>% # filter away rest days
+  rename(Type = Type.1) %>%
+  # extract origin& destination from Course variable
+  separate(Course, 
+           c("Origin", "Destination"), 
+           sep = " to ") 
+
+# Alter table to be consistent with `tdf_stages` df
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Stage = as.factor(Stage)) %>%
+  select(-c(NA., NA..1, Stage.type)) %>% # remove unnecessary variables
+  filter(!is.na(Stage)) %>% # filter away rest days
+  rename(Type = Stage.type.1) %>%
+  # extract origin& destination from Course variable
+  separate(Course, 
+           c("Origin", "Destination"), 
+           sep = " to ") 
+  
+# Extract winner countries from `winner variable`
+tdf_stages_2018$Winner_Country <- 
+# Get parenthesis and what is inside
+str_extract(string = tdf_stages_2018$Winner, 
+           pattern = "[(]...[)]") %>%  
+  # Extract words from the parenthesis only
+  str_extract(pattern = boundary("word")) 
+tdf_stages_2019$Winner_Country <-
+  #Get parenthesis and what is inside
+  str_extract(string = tdf_stages_2019$Winner,
+              pattern = "[(]...[)]") %>%
+  str_extract(pattern = boundary("word")) # Extract words only 
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Winner = str_remove(string = tdf_stages_2018$Winner, # Remove country details
+                             pattern = "[(]...[)]"),
+         Distance = str_remove(string = tdf_stages_2018$Distance,  # Remove miles details
+                             pattern = "[(].+[)]")) %>%
+  mutate(Distance = parse_number(Distance)) # Convert distance to numeric
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Winner = str_remove(string = tdf_stages_2019$Winner, # Remove country details
+                             pattern = "[(]...[)]"), 
+         Distance = str_remove(string = tdf_stages_2019$Distance, # Remove miles details
+                             pattern = "[(].+[)]")) %>%
+  mutate(Distance = parse_number(Distance)) # Convert distance to numeric
+
+# Adding year to Date variable
+## add year variable
+tdf_stages_2018 <- tdf_stages_2018 %>%
+  mutate(Date = paste(Date, 2018)) %>%
+  # convert character to date format consistent with tdf_stages
+  mutate(Date = lubridate::dmy(Date))
+
+# Adding year to date
+## add year variable
+tdf_stages_2019 <- tdf_stages_2019 %>%
+  mutate(Date = paste(Date, 2019)) %>%
+  # convert character to date format consistent with tdf_stages
+  mutate(Date = lubridate::dmy(Date))
+# Bind rows of all tdf stages
+tdf_stages <- rbind(tdf_stages, tdf_stages_2018, tdf_stages_2019)
+```
+
+```{r write-csv}
+# Write .csv files and read-in data
+winners %>% write_csv(here::here("data/tdf_winners.csv"))
+stage_clean %>% write_csv(here::here("data/stage_data.csv"))
+tdf_stages %>% write_csv(here::here("data/tdf_stages.csv"))
+```
+
+## 2. Is there a change in biological/physical traits of overall winners over the years?
+
+```{r bmi}
+winners_teams_named <- winners %>%
+  filter(start_date >= '1969-06-28') %>%
+  select(start_date, winner_name, winner_team, height, weight, age, stage_wins, stages_led) %>%
+  mutate(winner_team = replace(winner_team, winner_team == "Automoto-Hutchinson", "Automoto"),
+         winner_team = replace(winner_team, winner_team == "Banesto", "Movistar Team"),
+         winner_team = replace(winner_team, winner_team == "Caisse d'Epargne–Illes Balears", "Movistar Team"),
+         winner_team = replace(winner_team, winner_team == "U.S. Postal Service", "Discovery Channel"),
+         winner_team = replace(winner_team, winner_team == "Faema", "Faemino–Faema"),
+         winner_team = replace(winner_team, winner_team == "Team CSC", "Team Saxo Bank"),
+         winner_team = replace(winner_team, winner_team == "Team Sky", "Team Ineos"),
+         winner_team = replace(winner_team, str_detect(winner_team, "Peugeot"), "Peugeot"),
+         winner_team = replace(winner_team, str_detect(winner_team, "Renault"), "Renault"))
+
+top_teams <- winners_teams_named %>%
+  filter(winner_team %in% c("Discovery Channel",
+                            "Team Ineos",
+                            "Renault",
+                            "Movistar Team",
+                            "Molteni"))
+
+#Looking at BMI change overtime, grabbed from previous analysis and added the teams with > 3 winners and the trend over time
+winners %>%
+ggplot(aes(x = start_date, y = weight / height^2)) +
+  #geom_point(na.rm = TRUE) +
+  #geom_point(data = top_teams, aes(x = start_date, 
+   #                                y = weight / height^2,
+    #                               color = winner_team)) +
+  geom_smooth(alpha = .1, se = FALSE) +
+  theme_bw()
+```
+
+### Do overall winners, top sprinters or climbers have similar features (e.g. body type, age)? Were they consistent over the years?
+
+```{r physiological-make-up-different-terrain-riders}
+tdf_stages_dope_era <- tdf_stages %>%
+  filter(Date >= '1988-07-03')
+
+unique(tdf_stages_all_year$Type)
+
+top_climbers <- tdf_stages_dope_era %>%
+  filter(str_detect(Type, "mountain | Mountain |Hilly")) %>%
+  group_by(Winner) %>%
+  summarise(climb_wins = n()) %>%
+  arrange(desc(climb_wins)) %>%
+  head(n = 6)
+top_climbers  
+
+climbers_body <- tibble(winner_name = c("Chris Froome", "Vincenzo Nibali", "Michael Mathews", "Rafał Majka", "Romain Bardet", "Rui Costa"),
+                        weight = c(66, 65, 72, 58, 65, 68),
+                        height = c(1.86, 1.80, 1.78, 1.73, 1.84, 1.83)) %>%
+  mutate(rider_type = "Climber")
+
+top_sprinter <- tdf_stages_dope_era %>%
+  filter(str_detect(Type, "Flat | Plain | Intermediate")) %>%
+  group_by(Winner) %>%
+  summarise(sprint_wins = n()) %>%
+  arrange(desc(sprint_wins)) %>%
+  head(n = 5)
+
+sprinters_body <- tibble(winner_name = c("Mark Cavendish", "Marcel Kittel", "André Greipel", "Peter Sagan", "Thor Hushvod"),
+                          weight = c(70, 82, 75, 78, 79),
+                          height = c(1.75, 1.88, 1.84, 1.84, 1.83)) %>%
+  mutate(rider_type = "Sprinter")
+
+
+
+individual_tt <- tdf_stages_dope_era %>%
+  filter(Type == "Individual time trial") %>%
+  group_by(Winner) %>%
+  summarise(individual_tt_wins = n()) %>%
+  arrange(desc(individual_tt_wins)) %>%
+  head(n = 6)
+
+indiv_tt_body <- tibble(winner_name = c("Lance Armstrong", "Miguel Indurain", "Fabian Cancellara", "Jan Ullrich", "Chris Boardman", "Tony Martin"),
+                        weight = c(75, 76, 80, 76, 70, 75),
+                        height = c(1.77, 1.86, 1.86, 1.83, 1.75, 1.85)) %>%
+  mutate(rider_type = "Individual Time Trial")
+```
+
+```{r body-types-combine-and-plot}
+winners_body <- winners %>%
+  filter(start_date >= '1988-07-03') %>%
+  select(winner_name, weight, height) %>%
+  mutate(rider_type = "Overall winner")
+
+rider_body_types <- rbind(winners_body, indiv_tt_body, sprinters_body, climbers_body)
+
+rider_type_weight <- rider_body_types %>% 
+  ggplot(aes(x = rider_type,
+             y = weight)) +
+  geom_boxplot()
+
+rider_type_height <- rider_body_types %>% 
+  ggplot(aes(x = rider_type,
+             y = height)) +
+  geom_boxplot()
+  
+grid.arrange(rider_type_weight, rider_type_height, ncol =2)
+
+rider_body_types %>%
+  ggplot(aes(x = weight,
+             y = height)) +
+  geom_point() +
+  facet_wrap(~rider_type)
+```
+
+Are competitors younger/older these days?
+
+```{r median-mean-age}
+median_age_tdf <- stage_clean %>%
+  filter(year >= "1988") %>%
+  select(year, rider, age) %>%
+  group_by(year, rider) %>%
+  arrange(rider) %>%
+  group_by(year, rider) %>%
+  slice(1) %>%
+  group_by(year) %>%
+  summarise(median_age = median(age, na.rm = TRUE)) %>%
+  arrange(desc(year)) %>%
+  ggplot(aes(x = year,
+             y = median_age)) +
+  geom_point() +
+  geom_smooth(alpha = .1, se = FALSE, color = "#FFBE33")
+median_age_tdf
+
+mean_age_tdf <- stage_clean %>%
+  filter(year >= "1988") %>%
+  select(year, rider, age) %>%
+  group_by(year, rider) %>%
+  arrange(rider) %>%
+  group_by(year, rider) %>%
+  slice(1) %>%
+  group_by(year) %>%
+  summarise(mean_age = floor(mean(age, na.rm = TRUE))) %>%
+  arrange(desc(year)) %>%
+  ggplot(aes(x = year,
+             y = mean_age)) +
+  geom_point() +
+  geom_smooth(alpha = .1, se = FALSE, color = "#FFBE33")
+mean_age_tdf
+```
+
+#### Age overall winners v stage winners
+```{r overall-winner-age-stage-winner-age}
+stage_winner_age <- stage_clean %>%
+  filter(year >= "1988",
+         rank == "1") %>%
+  select(age) %>%
+  mutate(type = "stage_winners")
+
+winners_age <- winners %>%
+  filter(start_date >= '1988-07-03') %>%
+  select(age) %>%
+  mutate(type = "Overall winner")
+
+rbind(stage_winner_age, winners_age) %>%
+  ggplot(aes(x = type,
+             y = age)) +
+  geom_boxplot() 
+
+
+```
+
+Is a certain team producing winners more prevalently? - e.g. Do these teams have good salary, nutritionists etc.
+
+```{r most-prevelant-teams}
+#changed the team names to the most updated
+team_names_to_date <- winners %>%
+  filter(start_date >= '1969-06-28') %>%
+  select(start_date, winner_name, winner_team, height, weight, age, stage_wins, stages_led) %>%
+  mutate(winner_team = replace(winner_team, winner_team == "Automoto-Hutchinson", "Automoto"),
+         winner_team = replace(winner_team, winner_team == "Banesto", "Movistar Team"),
+         winner_team = replace(winner_team, winner_team == "Caisse d'Epargne–Illes Balears", "Movistar Team"),
+         winner_team = replace(winner_team, winner_team == "U.S. Postal Service", "Discovery Channel"),
+         winner_team = replace(winner_team, winner_team == "Faema", "Faemino–Faema"),
+         winner_team = replace(winner_team, winner_team == "Team CSC", "Team Saxo Bank"),
+         winner_team = replace(winner_team, winner_team == "Team Sky", "Team Ineos"),
+         winner_team = replace(winner_team, str_detect(winner_team, "Peugeot"), "Peugeot"),
+         winner_team = replace(winner_team, str_detect(winner_team, "Renault"), "Renault"))
+
+team_names_to_date %>%
+  select(start_date, winner_name, winner_team) %>%
+  group_by(winner_team) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  filter(n >= 3) %>%
+  ggplot(aes(x = fct_reorder(winner_team, n),
+             y = n)) +
+  geom_col(stat = "identity") +
+  theme_bw()
+```
+
+Is a certain nation producing winners/stage winners more prevalently?
+
+```{r winner-nationality}
+winners_nationality <- winners %>%
+  filter(start_date >= '1988-07-03')
+  group_by(nationality) %>%
+  summarise(n = n())
+
+winners_nationality %>%
+  ggplot(aes(x = fct_reorder(as.factor(nationality), n, .desc = FALSE),
+             y = n)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+
+overall_winner <- winners %>%
+  ggplot(aes(x = start_date,
+             y = nationality)) +
+  geom_point()
+
+stage_winner <- tdf_stages %>%
+  group_by(Winner_Country) %>%
+  summarise(wins = n()) %>%
+  arrange(desc(wins)) %>%
+  head(n = 8) %>%
+  ggplot(aes(x = fct_reorder(Winner_Country, wins, .desc = TRUE),
+             y = wins)) +
+  geom_col(stat= "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+## 1. What is the average speed of overall winners for each stage? 
+```{r stage-clean-rider-name}
+stage_clean %>%
+  select(rider) %>%
+  mutate(name = strsplit(rider, split = "^[A-Za-z]+[[:space:]]+", "", b")))
+
+
+```
+
+
+Are there certain tracks/terrains that most riders fail to complete (i.e. NA in rank/elpased in stage data)?
+```{r stage-dnf-otl}
+stage_clean %>%
+  filter(year >= "1988") %>%
+  group_by(stage_results_id) %>%
+  filter(rank %in% c("DNS", "OTL")) %>%
+  group_by(stage_results_id) %>%
+  summarise(not_finished = n()) %>%
+  mutate(stage_results_id = as.factor(stage_results_id)) %>% #sepereate and paste stage- to go behind the number
+  arrange(stage_results_id) %>%
+  ggplot(aes(x = stage_results_id,
+             y = not_finished)) +
+  geom_col(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
