@@ -179,10 +179,10 @@ top_teams <- winners_teams_named %>%
 #Looking at BMI change overtime, grabbed from previous analysis and added the teams with > 3 winners and the trend over time
 winners %>%
 ggplot(aes(x = start_date, y = weight / height^2)) +
-  #geom_point(na.rm = TRUE) +
-  #geom_point(data = top_teams, aes(x = start_date, 
-   #                                y = weight / height^2,
-    #                               color = winner_team)) +
+  geom_point(na.rm = TRUE) +
+  geom_point(data = top_teams, aes(x = start_date, 
+                                   y = weight / height^2,
+                                   color = winner_team)) +
   geom_smooth(alpha = .1, se = FALSE) +
   theme_bw()
 ```
@@ -193,15 +193,13 @@ ggplot(aes(x = start_date, y = weight / height^2)) +
 tdf_stages_dope_era <- tdf_stages %>%
   filter(Date >= '1988-07-03')
 
-unique(tdf_stages_all_year$Type)
-
 top_climbers <- tdf_stages_dope_era %>%
   filter(str_detect(Type, "mountain | Mountain |Hilly")) %>%
   group_by(Winner) %>%
   summarise(climb_wins = n()) %>%
   arrange(desc(climb_wins)) %>%
   head(n = 6)
-top_climbers  
+  
 
 climbers_body <- tibble(winner_name = c("Chris Froome", "Vincenzo Nibali", "Michael Mathews", "Rafał Majka", "Romain Bardet", "Rui Costa"),
                         weight = c(66, 65, 72, 58, 65, 68),
@@ -246,15 +244,18 @@ rider_body_types <- rbind(winners_body, indiv_tt_body, sprinters_body, climbers_
 rider_type_weight <- rider_body_types %>% 
   ggplot(aes(x = rider_type,
              y = weight)) +
-  geom_boxplot()
-
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 rider_type_height <- rider_body_types %>% 
   ggplot(aes(x = rider_type,
              y = height)) +
-  geom_boxplot()
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
   
 grid.arrange(rider_type_weight, rider_type_height, ncol =2)
+```
 
+```{r rider-body-type-facet}
 rider_body_types %>%
   ggplot(aes(x = weight,
              y = height)) +
@@ -312,7 +313,8 @@ winners_age <- winners %>%
   mutate(type = "Overall winner")
 
 rbind(stage_winner_age, winners_age) %>%
-  ggplot(aes(x = type,
+  rename(type_of_winner = type) %>%
+  ggplot(aes(x = type_of_winner,
              y = age)) +
   geom_boxplot() 
 
@@ -379,28 +381,178 @@ stage_winner <- tdf_stages %>%
 ```
 
 ## 1. What is the average speed of overall winners for each stage? 
-```{r stage-clean-rider-name}
-stage_clean %>%
-  select(rider) %>%
-  mutate(name = strsplit(rider, split = "^[A-Za-z]+[[:space:]]+", "", b")))
 
 
+```{r average-overall-winner}
+# Calcualting km/h speed for each stage
+tdf_stages_speed <- tdf_stages_names_clean %>%
+  mutate(hour = hour(elapsed)) %>%
+  mutate(ride_time_hour = as.numeric(elapsed, "hours"),
+         speed_kmhr = Distance/ride_time_hour)
+
+#separating the first and last name
+stages_speed_names <- tdf_stages_speed %>%
+  mutate(first_name = str_extract(rider, '\\w+$')) %>%
+  separate(rider, into = c("Last_name", "First_name"), sep = '\\w+$') %>%
+  mutate(Last_name = trimws(Last_name),
+         winner_name = paste(first_name, Last_name, sep = " "),
+         winner_name = as.character(winner_name)) %>%
+  select(stage_number, year, Type_terrain, ride_time_hour, speed_kmhr, winner_name, Distance, elapsed)
+
+winners_name <- winners %>%
+  mutate(year = year(start_date)) %>%
+  filter(year >= 2000) %>%
+  select(winner_name) %>%
+  arrange(winner_name) %>%
+  group_by(winner_name) %>%
+  slice(1)
+
+winner_stages_combined <-  inner_join(stages_speed_names, winners_name, by = "winner_name") %>%
+  drop_na()
+
+ 
+```
+
+Plotting the average speeds across different stages and different terrains
+
+```{r plot-speeds}
+#speeds across different stages
+winner_stages_combined %>%
+  mutate(stage_number = as.numeric(stage_number)) %>%
+  group_by(stage_number, Type_terrain) %>%
+  summarise(avg_speed = mean(speed_kmhr)) %>%
+  ggplot(aes(x = as.factor(stage_number),
+             y = avg_speed,
+             color = Type_terrain)) +
+  geom_point() 
+```
+
+```{r boxplot-speeds}
+winner_stages_combined %>%
+  ggplot(aes(x = Type_terrain,
+             y = speed_kmhr,
+             color = winner_name)) +
+  geom_boxplot()
 ```
 
 
 Are there certain tracks/terrains that most riders fail to complete (i.e. NA in rank/elpased in stage data)?
-```{r stage-dnf-otl}
-stage_clean %>%
-  filter(year >= "1988") %>%
+
+```{r combining-stage-clean-tdf-stage-data}
+stage_clean_stg_number <- stage_clean %>%
+  filter(year >= "2000") %>%
   group_by(stage_results_id) %>%
-  filter(rank %in% c("DNS", "OTL")) %>%
-  group_by(stage_results_id) %>%
-  summarise(not_finished = n()) %>%
-  mutate(stage_results_id = as.factor(stage_results_id)) %>% #sepereate and paste stage- to go behind the number
-  arrange(stage_results_id) %>%
-  ggplot(aes(x = stage_results_id,
-             y = not_finished)) +
-  geom_col(stat = "identity") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+  separate(stage_results_id, c("stage", "stage_number"), "-") %>%
+  mutate(year_stage = paste0(year, "-", stage_number))
+
+tdf_stage_stg_number <- tdf_stages %>%
+  mutate(year = year(Date),
+         year_stage = paste0(year, "-", Stage)) %>%
+  filter(year >= "2000") %>%
+  select(Stage, Date, Type, year, year_stage, Distance)
+
+tdf_stage_clean <- left_join(stage_clean_stg_number, tdf_stage_stg_number, by = "year_stage") %>%
+  select(stage_number, rank, rider, elapsed, year.x, Distance, Type, Date) %>%
+  rename(year = year.x)
+
+tdf_stages_names_clean <- tdf_stage_clean %>%
+  mutate(
+    Type_terrain = case_when(
+      str_detect(Type, "mountain|Mountain|Hilly|mountain(s)") ~ "Mountain",
+      str_detect(Type, "Flat|Plain") ~ "Flat",
+      str_detect(Type, "Individual time trial|Mountain time trial") ~ "Time Trial")) 
 ```
+
+```{r breakdown-of-type}
+tdf_stages_names_clean %>%
+  select(stage_number, year, Type_terrain) %>%
+  group_by(stage_number, Type_terrain, year) %>%
+  slice(1) %>%
+  mutate(stage_number = as.numeric(stage_number)) %>%
+  arrange(year, stage_number) %>%
+  group_by(Type_terrain, stage_number) %>%
+  tally() %>%
+  arrange(desc(stage_number, n))
+
+```
+
+```{r didnt-complete-by-terrain}
+#Table showing the percentage of DNF OTL NQ by terrain
+
+terrain_DNF_OTL_NQ <- tdf_stages_names_clean %>%
+  filter(rank %in% c("DNF", "OTL", "NQ")) %>%
+  group_by(Type_terrain) %>%
+  summarise(not_finished = n()) %>%
+  arrange(not_finished) %>%
+  mutate(not_finished = as.numeric(not_finished))
+  
+total_riders_stage <- tdf_stages_names_clean %>%
+  group_by(Type_terrain) %>%
+  summarise(total_riders = n())
+
+total_riders_dnf_terrain <- left_join(terrain_DNF_OTL_NQ, total_riders_stage, by = "Type_terrain") %>%
+  filter(Type_terrain %in% c("Time Trial", "Flat", "Mountain"))
+
+plot_pct_terrain_DNF <- total_riders_dnf_terrain %>% 
+  mutate(pct_not_finish = (not_finished/total_riders)*100) %>%
+  ggplot(aes(x = fct_reorder(Type_terrain, -pct_not_finish),
+             y = pct_not_finish)) +
+  geom_col(stat = "identity")
+plot_pct_terrain_DNF
+  
+```
+
+```{r stage-dnf-otl}
+DNF_OTL <- stage_clean %>%
+  filter(year >= "2000") %>%
+  group_by(stage_results_id) %>%
+  separate(stage_results_id, c("stage", "stage_number"), "-") %>%
+  mutate(stage_number = as.numeric(stage_number)) %>%
+  filter(rank %in% c("DNF", "OTL", "NQ")) %>%
+  group_by(stage_number) %>%
+  summarise(not_finished = n()) %>%
+  arrange(stage_number) %>%
+  mutate(stage_number = as.numeric(stage_number))
+
+DNS <- stage_clean %>%
+  filter(year >= "2000") %>%
+  group_by(stage_results_id) %>%
+  separate(stage_results_id, c("stage", "stage_number"), "-") %>%
+  mutate(stage_number = as.numeric(stage_number)) %>%
+  filter(rank %in% c("DNS")) %>%
+  group_by(stage_number) %>%
+  summarise(not_start = n()) %>%
+  arrange(stage_number) 
+  
+total_riders_stages <- stage_clean %>%
+  filter(year >= "2000") %>%
+  group_by(stage_results_id) %>%
+  separate(stage_results_id, c("stage", "stage_number"), "-") %>%
+  mutate(stage_number = as.numeric(stage_number)) %>%
+  group_by(stage_number) %>%
+  summarise(total_riders = n())
+  
+total_DNF_OTL <- left_join(DNF_OTL, total_riders_stages, by = "stage_number")
+
+pct_total_DNF_OTL <- total_DNF_OTL %>%
+  mutate(pct_not_fin = (not_finished/total_riders)*100,
+         stage_number = as.factor(stage_number)) %>%
+  ggplot(aes(x = stage_number,
+             y = pct_not_fin)) +
+  geom_col(stat = "identity")
+
+total_DNS <- left_join(DNS, total_riders_stages, by = "stage_number")
+
+pct_total_DNS <- total_DNS %>%
+  mutate(pct_not_start = (not_start/total_riders)*100,
+         stage_number = as.factor(stage_number)) %>%
+  ggplot(aes(x = stage_number,
+             y = pct_not_start)) +
+  geom_col(stat = "identity")
+
+grid.arrange(pct_total_DNF_OTL, pct_total_DNS, nrow = 2)
+```
+
+
+
 
