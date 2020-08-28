@@ -309,14 +309,26 @@ terrain_non_finishes <- tdf_stages_names_clean %>%
   filter(rank %in% c("DNF", "OTL", "NQ")) %>%
   group_by(Type_terrain, year) %>%
   summarise(non_finish = n()) %>%
-  drop_na()
+  drop_na() %>%
+  ungroup() %>%
+  select(year, non_finish)
 
 total_stage_riders <- tdf_stages_names_clean %>%
   filter(year > "1969") %>%
-  group_by(stage_number) %>%
-  summarise(riders = n())
+  group_by(Type_terrain, year) %>%
+  summarise(riders = n()) %>%
+  ungroup()
 
-# THINK ABOUT ADDING THIS PLOT 
+left_join(terrain_non_finishes, total_stage_riders, by = "year") %>%
+  filter(year >= "1969") %>%
+  select(year, Type_terrain, non_finish, riders) %>%
+  mutate(pct_not_finish = (non_finish/riders)*100) %>%
+  drop_na() %>%
+  ggplot(aes(x = year,
+             y = pct_not_finish)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~Type_terrain)
 
   ggplot(aes(x = as_factor(year),
              y = non_finish)) +
