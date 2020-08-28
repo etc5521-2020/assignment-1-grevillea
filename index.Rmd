@@ -60,6 +60,7 @@ library(tdf)
 # For web scraping
 library(polite)
 library(rvest)
+library(plotly)
 ```
 
 ```{r read-data, include = FALSE}
@@ -152,6 +153,7 @@ winner_stages_combined %>%
   scale_y_continuous(breaks = seq(0, 50, 5)) +
   labs(color = "Stage Types") +
   facet_wrap(~Type_terrain)
+ggplotly()
 
 ```
 
