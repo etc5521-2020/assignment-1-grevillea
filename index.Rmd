@@ -7,8 +7,27 @@ author:
   - Brendi Ang
 date: "`r Sys.Date()`"
 output:
-    bookdown::html_document2: default
+    bookdown::html_document2:
+      keep_tex: yes
+      number_sections: yes
+      citation_package: biblatex
+      toc: false
+bibliography: references.bib
+biblio-style: authoryear-comp
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.align = 'center')
+
+# load libraries
+library(tidyverse)
+library(kableExtra)
+library(lubridate)
+library(tdf)
+# For web scraping
+library(polite)
+library(rvest)
+```
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
 
@@ -16,52 +35,36 @@ output:
 
 The Tour de France is a cycling tournament that is held in France annually with the winner being the rider with lowest elapsed time after the completion of every stage which spans across 21 stages over 23 gruelling days. It is considered one of, if not, the most prestigious race that elite cyclists can partake in given the level of difficulty of riding through the ranging beautiful French landscapes @{EEB}. Despite being an individual event, riders travel through the whole country going through the scenic French countryside in teams of 8 in order to strategically position the team leader in the best position to win the general classifications. Teams work with their rider to reduce the physical strain of the course, strategically target particular parts and block certain riders from advancing among many other coordinated efforts for the overall benefit of their lead rider @{EngberD}. The teams would pass through long country side roads, steep alpine regions and tight city areas, covering terrain ranging from rolling hills, long flat grounds and steep mountainous incline in their quest for victory. The types of terrain are dispersed across the different stages over the 23 days with the breakdown usually consisting of flat stages, mountain stages, hilly stages and time trial stages. The division of the stages and the combination of terrains across the Tour are one of the reasons the Tour is considered so gruelling and one of the greatest difficulties for riders and teams to overcome as each type of terrain usually fits a rider with specific compositions however, in order to be victorious they must be able to perform across all the terrains and plan their strategy to control the race effectively @{RickmanC}. Given the chess-like strategy that runs tandem with the elite physical attributes and skills required to win the general classification, this report will do a deep analysis into the Tour de France historical data to look at the past results, riders, teams and potential winning blueprint to answer the primary question: _“What are the most important characteristics and attributes to win the tour and how have they evolved over time?”_ with a number of follow up questions that will inspect the range of variables associated with winning the Tour de France in oder to ultimately explain what it takes to come out victorious.
   
+
 ## History of Tour De France
 
-Tour De France ("Le Tour") is an annual men's bicycle race that in modern days encompasses a 21-day course that covers approximately 3,500km. It is predominantly held in France while often passing through other countries. Cyclists from around the world gather for a chance to win the prestigious 'Tour De France' trophy, along with a cash prize of €450,000.
+Tour De France ("Le Tour") is an annual men's bicycle race that in modern days encompasses a 21-day course that covers approximately 3,500km. It is predominantly held in France while often passing through other countries. Cyclists from around the world gather for a chance to win the prestigious 'Tour De France' trophy, along with a cash prize of €550,000 (@britannica2020).
 
-Split into various stages:
-- flat stages
-- hilly stages
-- mountain stages (incl. 5 summit finishes)
-- individual ad team time trials
-- rest days
-
-One stage is performed every day, covering approximately 225km& about 5.5hours to complete. Each stage has a winner, & the rider that completes the most stages in the shortest amount of time wins the overall title. 
+The tour is typically split into four various stages --- flat, hilly, mountain, individual and team time trials. One stage is performed per day and each stage has a winner, and the rider that completes the most stages in the shortest amount of time wins the overall title. 
 
 ## The Jersey Hierarchy
 
-The colour and patterns of jerseys  to look out for in every race. As a brief overview,
-the same coloured jerseys are worn within teams, current road champions get to wear their team jerseys with their country's colour& reigning world champions wears their team jerseys with stripes. The jersey hierarchy, which is based on the how old the competition has been implemented, serves as a symbolic purpose:
+The colours and patterns of jerseys are some things one should look out for in every race. As a brief overview, the same coloured jerseys are worn within teams, current road champions get to wear their team jerseys with their country's colour& reigning world champions wears their team jerseys with stripes (@britannica2020). The jersey hierarchy, which is based on the how old the competition has been implemented, serves as a symbolic purpose:
 
-**Yellow: General classification - Race leader**: "General Classification" is the oldest and main competition sought after by competitors, where the winner of this will win the overall title. after each stage, the rider with the lowest aggregate time gains the privilege to wear the most coveted jersey in the race, the yellow jersey.  
+**Yellow: General Classification (Race leader)**: The "General Classification" is the oldest and main competition sought after by competitors, where the winner of this will win the overall title. After each stage, the rider with the lowest aggregate time gains the privilege to wear the most coveted jersey in the race.
 
-**Red& white polka-dot: Mountains classification - meilleur grimpeur (Best climber)**: With stages containing climbs, points are awarded to riders who reach the summit first. Thus, this worn by the rider who at the start of each stage, has the largest number of climbing points.
+**Red& white polka-dot: Mountains Classification (Best climber)**: With stages containing climbs, points are awarded to riders who reach the summit first. Thus, this is worn by the rider who at the start of each stage, has the largest number of climbing points.
 
-**Green: Points classification - Top sprinter**:   
-- Worn by rider who has the greatest number of points at the start of each stage, where points are given to first 15 riders to finish a stage. Furthermore, additional points are also given to first 15 riders to cross a pre-determined 'sprint' point in each stage. These jerseys are usually worn by 'sprinters'.
+**Green: Points classification - Top sprinter**:  Worn by rider who has the greatest number of points at the start of each stage, where points are given to first 15 riders to finish a stage. Furthermore, additional points are also given to first 15 riders to cross a pre-determined 'sprint' point in each stage (@britannica2020). These jerseys are usually worn by 'sprinters'.
 
 **White: Young rider classification - Most impressive rider, under 26 years old**: Determined the same as general classification, where it is restricted to riders that are under 26 years old.  
 
 ## Teams
 
-You may ask, why have teams when there is only one individual champion for the General Classification? '*Domestiques*' (french in servant), a term frequently used to describe riders who support a team leader to win stages and accumulate the least elapsed time at the end of the race. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy; This is known as 'Lead-out Trains'. Teams typically consists of 8 riders and are denoted by numbers 1-9, where the team leader wears the lowest number.
+You may ask, why have teams when there is only one individual champion for the General Classification? '*Domestiques*' (french in servant), a term frequently used to describe riders who support a team leader to win stages and accumulate the least elapsed time at the end of the race. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy (@Prinz2012); This is known as 'Lead-out Trains'. Teams typically consists of 8 riders and are denoted by numbers, where the team leader wears the lowest number.
 
-# Data description
+# Tour De France Data 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.align = 'center')
+## Getting the Data (and Debugging Process)
 
-# load libraries
-library(tidyverse)
-library(lubridate)
-library(kableExtra)
-library(tdf)
-# For web scraping
-library(polite)
-library(rvest)
-library(plotly)
-```
+Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the Tour De France data set. However, we discovered errors in the `time` and `elapsed` variables as the `lubridate::period` objects were missing and incorrect. Furthermore, `tdf_stages` data set only provided data till the 2017 edition while the actual dataset covered all the way to 2019. Thus, we opted to use the cleaning script found in the [same GitHub link](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md). 
+
+Accordingly, our debugging process includes renaming inconsistent variable names, extracting components of date-time objects and using regular expressions to fix the structure of character strings to reproduce the same data set that was intended. Further, we web scraped the data from Wikipedia (@wikiTDF2018 and @wikiTDF2019) to obtain the stages data set for 2018 and 2019. These Wiki pages corresponds to how the actual data set obtained its data; Thus binding the data was  straightforward as the structure the data was analogous with the `tdf_stages` data set.
 
 ```{r read-data, include = FALSE}
 stage_clean <- read.csv(here::here("data/stage_data.csv"))
@@ -69,14 +72,14 @@ winners <- read.csv(here::here("data/tdf_winners.csv"))
 tdf_stages <- read.csv(here::here("data/tdf_stages.csv"))
 ```
 
-The data used for this analysis originates from the `tdf` R package, which is essentially a container for the  `editions` data frame. This data set is hosted on [GitHub](https://github.com/alastairrushworth/tdf) and is readily available. The data set encompasses the historic data about Tour de France riders, stages and winners.
+## Data Description
+The data used for this analysis originates from the `tdf` R package, which is essentially a container for the  `editions` data frame. This data set, along with its cleaning script are hosted on [GitHub](https://github.com/alastairrushworth/tdf) and is readily available. This data set encompasses the historic data about Tour de France riders, stages and winners.
 
-`winners` corresponds to a condensed version of the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019). Some of the variables include:
-
-
-```{r}
-glimpse(tdf_winners)
+```{r explore-winners}
+glimpse(winners)
 ```
+
+`winners` corresponds to a condensed version of the `editions` data frame provided by the `tdf` package. Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019). Some of the variables include:  
 
 - `winners ` variables contains the overall winner's biographical data and information about the race for a given edition, which comprises of:  
 - `start date` start of the Tour De France edition
@@ -91,15 +94,12 @@ glimpse(tdf_winners)
 - `full_name` overall winner's full name
 - `nationality` overall winner's nationality
 
-
-The `editions` dataset contains variable `stage results`, which represents a list of lists where each element contains a list of stage results pertaining to a particular year or edition of Tour De France. When we unnest, or flatten it back to its regular columns, we get `tdf_stages` and `stage_clean` dataset.
-
-
 ```{r explore-tdf-stages, include = FALSE}
 glimpse(tdf_stages)
 ```
 
-The `tdf_stages` data set depicts the details of the stage winners at each stage of an edition, with stage type/terrain, the distance between the start location and end location of the stage. Some of the variables includes:
+The `editions` dataset contains variable `stage_results`, which represents a list of lists where each element contains a list of stage results pertaining to a particular year or edition of Tour De France. When we unnest, or flatten it back to its regular columns, we get `tdf_stages` and `stage_clean` dataset. The `tdf_stages` data set depicts the details of the stage winners at each stage of an edition, with stage type/terrain, the distance between the start location and end location of the stage. Some of the variables includes:  
+
 - `stage`: Stage number of the edition
 - `date`: Date of stage
 - `origin` and `destination`: Start and end location of the stage
@@ -111,7 +111,7 @@ The `tdf_stages` data set depicts the details of the stage winners at each stage
 glimpse(stage_clean)
 ```
 
-The `stage_clean` is expands on the `tdf_stages` dataset, including results of all riders and their ranks at every stage where each row corresponds to the result of a particular rider such as points accumulated for the stage. This data set includes variables such as:
+The `stage_clean` is expands on the `tdf_stages` dataset, including results of all riders and their ranks at every stage where each row corresponds to the result of a particular rider such as points accumulated for the stage. This data set includes variables such as:  
 
 `edition`: Race edition pertaining to the year
 `rider`: The name of the rider/participant
@@ -120,15 +120,7 @@ The `stage_clean` is expands on the `tdf_stages` dataset, including results of a
 `elapsed`: Time elapsed for the stage
 
 
-## Problems encountered 
-
-Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the Tour De France data set. However, we discovered errors in the `time` and `elapsed` variables in the `stage_clean` where the period objects were incorrect. Thus, we opted to use the cleaning script found in the same github link and made some adjustments such as changing the object names to reproduce the same data set that was intended. 
-
-Furthermore, `tdf_stages` data set only provided data till the 2017 edition while the actual dataset covered all the way to 2019. Accordingly, we web scraped the data from these the Wikipedia (for [2018](https://en.wikipedia.org/wiki/2018_Tour_de_France) and [2019](https://en.wikipedia.org/wiki/2019_Tour_de_France)) to obtain the stages data set for 2018 and 2019. These Wiki pages corresponds to how the actual data set obtained its data, making it straightforward to structure the data to a tidy format analogous with the `tdf_stages` data set, assuring smooth binding of the data.
-
-
 # Analysis and findings
-
 
 ## Time and place for speed
 
@@ -183,7 +175,6 @@ Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overal
 ## Where does the greatest difficulty lie?
 
 The following section will be analysing the incompletion rate across the different types of stages. Each stage carries with it it's own unique difficulties and understanding where riders have historically shown the greatest weakness could be benefical at understanding stages that should be targetted and where energy needs to be conserved for. In order to conduct this analysis the total number riders over who failed to complete each stage was divided by the total number competitors who have competed in the stage over time. The _stage_clean_ dataset lists riders who "did not finish", "over the time limit" and "not qualified" as "DNF", "OTL" and "NQ" as their rank for the stage, these ranks were tallied up for every stage as well as the particpants for every stage and then divided over each other to produce the percentage rate of incompletion for each stage.  
-
 
 ```{r DNF-OTL-NQ, fig.cap = "The percentage of riders that have not finished the main for stages, since 1969"}
 total_riders_dnf_terrain %>%
@@ -276,7 +267,7 @@ winners %>%
 
 Figure \@ref(fig:age-winner) visualises the age of the overall winner since 1988 with the date on the x axis and the age on the y axis. A slight upward trend is present with quite a bit of variability in amongst the time frame which indicate that the age of winning riders is increasing however, it does not seem to be the most critical element given the distribution on both sides of the trend line. It is also worth noting that, given the EPO era that this time frame is inspecting, the increased riding/winng age could also be influenced by illicit substance use, as was notoriously the case with Lance Armstrong @{WilsonJ} who won seven straight tours from 1999 aged 27 through to 2005 aged 32 as well as less well known riders such as Bjarne Liis who won 1996 aged 32 and also admitted to doping @{FarrandS} as well as Miguel Indurain who won 5 tours in a row from 1991 to 1995 @{FotheringhamA}. These substance based results are the ones that are known and there could potential be others which may have influenced the dataset and skewed the results. 
 
-Although Figure \@ref(fig:age-winner) shows a slight upward trend in winning age, the three diagonal lines present are related to three winners who won consecectuvely with two of them being flagged for doping and the use of the performance enhancers is most likely the reason why they were able to win one, let alone that many in a row thus skewing the age trend upward fallaciously. Overall, this would indicate that being younger or older may not play the largest factor in the chance to claim victory at the Tour de France.  
+Although Figure \@ref(fig:age-winner) shows a slight upward trend in winning age, the three diagonal lines present are related to three winners who won consecectuvely with two of them being flagged for doping and the use of the performance enhancers is most likely the reason why they were able to win one, let alone that many in a row thus skewing the age trend upward fallaciously. Overall, this would indicate that being younger or older may not play the largest factor in the chance to claim victory at the Tour de France.
 
 ## Is being part of team important?
 
@@ -319,5 +310,261 @@ winners %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) 
 ```
 
+
+
+
 Figure \@ref(fig:winner-nationality) visualises the distribution of countries each winner has been from with the year of the Tour on the x axis and the nationality on the y axis. The figure shows that Up until 1985 France and Belgium were the two most dominant countries from which winning riders were from. In 1986 the U.S. saw their first win and the most dominant nations since then have been the U.S. Spain and Great Britain. This could be a result of globilisation of the sport and access and mobility with regards to training and travel, making it more accessible for riders, coaches and teams to train and operate in the most desired regions with the highest calibre of trainers. However, it should be noted this change comes around the time of the "doping era" which clearly has a large factor in the wins tallied by the United States. Given the freedom of movement and access to terrains and training being accessbile by most athletes, it would still seem a few countries dominate the winning colomn each year which could indicate where the best training partners and highest level of performance and training takes place.
+
+# Quest for the Yellow Jersey
+
+## Procedure
+  
+The purpose of this section is to explore the trends of overall winners. We start by answering the most basic question: "Do overall winners win all stages through the edition?". Here, we discovered that what some overall winners achieved in the early decades have not been achieved in contemporary editions. For instance, wearing the yellow jersey for all stages in the edition. So, we decided to hone in on the last two decades, 2000 - 2020. We studied how overall winners were ranked in each stage and stage type to examine if these riders specialised in any particular domain such as sprinting or climbing. For this section, we utilised regular expressions to manipulate character strings, and relational joins to join data sets with matching observations.
+
+```{r wrangle-stage-data}
+# Parse stage number
+stage_clean <- stage_clean %>%
+  mutate(stage = str_extract(stage_results_id, "\\d+")) %>% 
+  mutate(stage = as.factor(stage)) # change to factor for joins
+
+# parse elapsed into lubridate::period variable
+stage_clean <- stage_clean %>%
+  mutate(elapsed = hms(elapsed))
+```
+
+```{r tdf-stages-2000s}
+# Add year variable for joining table
+tdf_stages <- tdf_stages %>% 
+  mutate(date = as.Date(date)) %>%
+  mutate(year = year(date))
+
+tdf_stages_2000s <- tdf_stages %>%
+  filter(between(year, 2000, 2019)) %>%
+  rename(stage_winner = winner,
+         stage_winner_country = winner_country)
+
+# Change "P" to stage 0
+## Represents prologue of the race, usually determines yellow jersey for race 1
+tdf_stages_2000s$stage <- ifelse(tdf_stages_2000s$stage == "P", "0", as.factor(tdf_stages_2000s$stage)) 
+
+# include year variable for join
+winners  <- winners  %>%
+  mutate(start_date = as.Date(start_date)) %>%
+  mutate(year = year(start_date))
+
+# Extract overall winners' names
+winners_2000s <- winners %>%
+  filter(between(year, 2000, 2019)) %>%
+  select(winner_name, year)
+
+# Change order of winner names to match with stage_clean rider names
+winners_2000s$winner_name <-
+  str_replace(string = winners_2000s$winner_name, pattern = "([^ ]+) ([^ ]+)", replacement = "\\2 \\1")
+
+# Extract stages details 
+stage_winners_2000s <- stage_clean %>%
+  filter(between(year, 2000, 2019)) %>%
+  # include stage data of overall winner only
+  inner_join(winners_2000s, by = c("year", "rider" = "winner_name")) %>% 
+  left_join(tdf_stages_2000s, by = c("year", "stage")) %>% # Add stage details
+  mutate(rank = as.numeric(rank)) # Change rank to numeric for plotting
+
+# Filter out one NA rank
+stage_winners_2000s <- stage_winners_2000s %>%
+  filter(!is.na(rank)) %>%
+  # Add decade variable, for plotting
+  mutate(decade = case_when(
+           between(year, 2000, 2009) ~ "2000 - 2009",
+           between(year, 2010, 2020) ~ "2010 - 2019")) %>%
+  mutate(year = as.factor(year))
+
+stage_winners_2000s$stage_winner <- str_replace(string = stage_winners_2000s$stage_winner, pattern = "\\[.+\\]", replacement = "")
+
+stage_winners_2000s <- stage_winners_2000s %>%
+  # remove unnecessary paranthesis
+  mutate(stage_winner = str_replace(string = stage_winners_2000s$stage_winner, pattern = "\\[.+\\]", replacement = "")) %>%
+  # change sequence of names to match winner names
+  mutate(stage_winner = str_replace(string = stage_winners_2000s$stage_winner, pattern = "([^ ]+) ([^ ]+)", replacement = "\\2 \\1"))
+```
+
+## A fallacy: Overall Winners leads all stages
+
+```{r stages-led-plot, fig.cap = "How often do Overall Winners Wear the Yellow Jersey"}
+ggplot(winners) +
+  geom_point(aes(x = year,
+                 y = stages_led,
+                 ),
+           alpha = 0.8) +
+  geom_point(data = subset(winners, year %in% c(1928, 1934)), # Riders who led 22 stages
+             aes(x = year,
+                 y = stages_led,
+                 ),
+             colour = "#bc3a3a") +
+  # Add text on years 1928 and 1934
+  geom_text(data =  subset(winners, year %in% 1928), 
+            aes(x = year * 0.9977, y = stages_led * 1.003, 
+                label = "1928", 
+                fontface = "bold")) +
+  geom_text(data =  subset(winners, year %in% 1934), 
+            aes(x = year * 1.002, y = stages_led * 1.003, 
+                label = "1934", 
+                fontface = "bold")) +
+    geom_line(aes(x = year,
+                 y = stages_led
+                 ),
+              alpha = 0.5) +
+  scale_x_continuous(breaks =seq(from = 1900, to = 2020, by = 10),
+                     labels =seq(from = 1900, to = 2020, by = 10)) +
+  labs(y = "Stages led by Overall Winner",
+       x = "Year") +
+  theme_linedraw() +
+  ggtitle("How often do Overall Winners Wear the Yellow Jersey?")
+```
+
+Many speculate that overall winners are cyclists who consistently don the yellow jersey by winning all stages. However, in the majority of the editions, the line plot (\@ref(fig:stages-led-plot)) invalidates the conjecture, demonstrating that the stage led by overall winners has been shown to vary greatly across most editions. The plot further reveals that overall winners can lead as little as 1 stage, suggesting that they only led the tour at the very last stage. 
+
+Figure \@ref(fig:stages-led-plot) further illustrates that staged led by overall winners have decreased in the recent years as compared to earlier era. This circumstance can be attributed to the imbalanced skill set of riders may attribute to this. To elaborate, tour organisers introduced new trophies into the race over the years as a strategic tool to allow for a more vivid contest with multiple opportunities for duels between riders or teams (andreff2016tour). By creating 'different races within the race', the number of riders in contention of the yellow jersey have dwindled over the years as other riders fight for these other trophies. The implementation of new trophies were introduced until 1989, when the trophies stabilised (andreff2016tour), where rewards are given to the best overall, climber, sprinter, young rider and team. This trend can be seen on Figure \@ref(fig:stages-led-plot), where riders contend for different trophies and thus, reducing the number of trophies led by the overall winner.
+
+Nicolas Frantz and Antonin Magne have both proven that winning all 22 stages is not infeasible in 1928 and 1934 respectively (Figure \@ref(fig:stages-led-plot)). However, we should note that tours are constantly changing, and compared to the earlier era, riders now spends more days on the road with less time to rest. For instance, the time spent by riders on their bikes, fell from 10–16 hours before the 1930s to 4–5 hours in the 2000s (@andreff2016tour). 
+
+## Ranks of Overall Winners in Different Stages
+
+```{r ranks-by-stage-boxplot, fig.cap = "Ranks of Overall Winners across Stages (2000 - 2019)"}
+stage_winners_2000s %>%
+  mutate(stage = as.integer(stage)) %>% 
+  arrange(desc(stage)) %>%
+ggplot(aes(y = as.factor(stage),
+           x = rank,
+           group = stage)) +
+  geom_boxplot() +
+  geom_point(alpha = 0.3) +
+  theme_linedraw() +
+  scale_x_continuous(breaks = c(seq(from = 0, to = 150, by = 10))) +
+  labs(y = "Stage",
+       x = "Rank") +
+  ggtitle("Ranks of Overall Winners across Stages") +
+  theme(plot.title = element_text(face = "bold", size = 14))
+```
+
+The box plot (Figure \@ref(fig:ranks-by-stage-boxplot)) depicts the ranks of all overall winners from 2000 - 2019 for each stage. In most cases, overall winners are ranked lower than 20 and below, which may imply that the winners have a consistent pace that puts them in these ranks. Moreover, it can also be observed that overall winners usually starts out slow, averaging at a median rank of approximately 25. They usually catch up in ranks, particularly at stage 8 onwards, where they consistently below 20. Consequently, in stages 17-20, overall winners seem to pick up their pace and usually attain the top 10 rankings, implying that overall winners may start wearing the yellow jersey at this point forward. By the same token, this reiterates that the consistent pace of overall winners and may suggest that riders who exerted more energy in earlier stages are unable to keep up with the overall winners at later stages. 
+
+Why are the ranks of overall winners in stage 21 rather high and peculiar? Stage 21, or better known as the "Champs-Élysées" stage, representing a symbolic street in Paris, France. As a tradition, riders set a truce to their competition to have a celebratory moment of tranquillity, chatting, and even celebrating with glasses of champagnes in the final kilometres (@MitchellM). For this reason, the rankings of overall winners differ greatly in this stage.
+
+## Do Overall Winners Thrive in Certain Stage Types or Terrain?
+
+### Stages of Tour De France 
+
+```{r winners-by-stage, fig.width = 8}
+# Categorise stages into 4 main stages in tdf
+stage_winners_2000s <- stage_winners_2000s %>%
+  mutate(type = case_when(
+    str_detect(type, "mountain") ~ "Mountain",
+    str_detect(type, "Mountain") ~ "Mountain",
+    str_detect(type, "Flat") ~ "Flat",
+    str_detect(type, "trial") ~ "Time trial",
+    str_detect(type, "Hilly") ~ "Hilly")) %>%
+  filter(!is.na(type)) # filter out 2 uncategorised stage type 
+```
+
+```{r stage-distance-2000s}
+# Compute total distance for an edition
+stage_winners_2000s <- stage_winners_2000s %>%
+  group_by(edition) %>%
+  mutate(total_dist = sum(distance, na.rm = TRUE)) # remove one row with NA distance
+```
+
+```{r stage-type-prop, fig.cap = "Proportions of stage type for an edition (2000 - 2020)"}
+ggplot(stage_winners_2000s) +
+  geom_bar(aes(x = year,
+               y = total_dist,
+               fill = type,
+               group = type),
+           stat = "identity",
+           position = "fill",
+           alpha = 0.8) +
+  theme_linedraw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(y = "Total Distance",
+       x = "Year") +
+  ggtitle("Proportions of Stage Type") +
+  theme(panel.grid = element_blank(),
+        plot.title = element_text(face = "bold", size = 14))
+```
+
+The analysis above brings us to the question: "What makes overall champions great in spite of all the different stages?". Despite century steeped traditions, tour organisers have arranged the racecourse in a different manner each year. Nonetheless, it is with a goal in mind, to include a balance of the different types of races. The dynamics and the different locations of each edition force riders to tailor their tactics for the different adversities in each course. In most editions, the largest proportion of the rest is mountain stages, followed by flat stages (Figure \@ref(fig:stage-type-prop)). In 2007, the edition only consisted of mountain stages and time trials. 
+
+### Strategies of Overall Winner
+
+```{r ranks-by-stage-tbl}
+# Filter to stages that overall winners won
+rank_summ <- stage_winners_2000s %>%
+  filter(rank > 5) %>%
+  group_by(type) %>%
+  tally() %>%
+  arrange(desc(n)) 
+
+rank_summ <- stage_winners_2000s %>%
+  group_by(type) %>%
+  tally() %>%
+  inner_join(rank_summ, by = "type") %>%
+  rename(total_stage_type = n.x,
+         ranked_below_5 = n.y) %>%
+  # Find proportion& add '%' symbol
+  mutate(prop_rank_type = paste(round((ranked_below_5/total_stage_type)*100, 
+                                      digits = 2),
+                                "%", sep = "")) %>%
+  relocate(total_stage_type, .after = ranked_below_5) %>%
+  rename(`Stage Type` = type,
+         `Stage Type Total Count` = total_stage_type,
+         `Ranked 5th or below` = ranked_below_5,
+         `Proportion` = prop_rank_type) 
+
+rank_summ %>%
+  kable(caption = "Proportion of Overall Winners Ranked 5th and Below by Stage Type") %>%
+  kable_styling(bootstrap_options = c("hover", "striped"))
+```
+
+```{r ranks-by-stage-type, fig.cap = "Rankings of Overall Winners (2000 - 2019) by Stage Type"}
+stage_winners_2000s %>%
+  ggplot(aes(x = type,
+           y = rank)) +
+  geom_violin(aes(fill = type),
+              width = 1.2,
+              alpha = 0.7) +
+  geom_boxplot(width = 0.2) +
+  geom_point(alpha = 0.2) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_y_continuous(breaks = c(seq(from = 0, to = 100, by = 10),
+                                seq(from = 100, to = 150, by = 25))) +
+  theme_linedraw() +
+  labs(x = "Type",
+       y = "Rank") +
+  ggtitle("Rankings of Overall Winners (2000 - 2019) by Stage Type") +
+  theme(legend.position = "bottom",
+        panel.grid.minor.y = element_blank(),
+        plot.title = element_text(face = "bold", size = 14))
+```
+
+Given the length of the tour and the different terrains, the fastest rider does not win Tour De France, but a more game- theoretical approach (@Prinz2012). Figure \@ref(fig:ranks-by-stage-type) illustrates that overall winners are versatile riders with an itinerary that necessitates different strategies for the various stage types. This is also manifest in Table \@ref(tab:ranks-by-stage-tbl), which establishes that overall winners are ranked 5 and below in approximately 7 in 10 races for all types of stage. Notably, the Figure (\@ref(fig:ranks-by-stage-type)) also reinforces the idea that overall winners do not always perform great in all stages, as seen with the variability of ranks at each type of stage.
+
+It is almost always that the overall winners are formidable at climbing mountains. Arguably, mountain stages are the most difficult parts of the rest considering the steep climbs, thin air at high altitudes, and narrow descents in mountain stages. Having said that, these stages have the largest potential for time gaps and for riders to make the grade and set them apart from other riders. Table \@ref(tab:ranks-by-stage-tbl) demonstrates that overall winners thrive in mountain stages, where they are ranked 5 or less in at least three out of four mountain stages. For this reason, winners are on average, lighter cyclists who can take advantage of overcoming gravity in steep climbs with greater aerobic power (@Prinz2012), as found in section 2. Not to mention, Figure \@ref(fig:ranks-by-stage-type) implies that one can also expect large variability in rankings of overall winners when it comes to these gruelling mountain stages. 
+
+Amongst the different stage types, rankings of overall winners had the least median rank and smallest variations when it came to time trials (Figure \@ref(fig:ranks-by-stage-type)). This implies two things; First, overall winners must be physiologically skilled to win individual time trials. Individual time trials test endurance and solo strengths by forcing them to negotiate the course comprising of curved roads, small-scale slopes, and multiple terrain types while keeping a steady and appropriate pace. Unlike ephemeral sprints, time trials are more closely regarded as short marathons where riders are expected to maintain high intensities of exercise for long periods of time (@Santalla2012). On top of these factors, studies have shown that the physiological effects of heat and altitude can reduce performance by as much as 35% in isolation (@Steve2016).
+
+Secondly, constantly winning team trial tests convey that a great team is a significant driver for winning the stage. A strategic reality is that the speediest individual will most likely not surpass a group of cyclists as the perfect sprints are often a result of seamless teamwork and aerodynamic advantages (@Prinz2012). This is especially complex as teams must find an ideal pace despite their diverse body types and skills. For instance, team's *domestiques* (French for servants) work in unison to allow for drafting (shield from wind resistance by riders in front) to facilitate a smoother ride for the team leader (@Rhett2018). This can ensure he arrives at crucial moments of the race with little energy expended. 
+
+Unlike the constant speed in mountain stages,flat stages are associated with short bursts of high power and long periods with a reduced intensity of exercise (@vogt2007cycling). With flat stages accounting for nearly one third (`r rank_summ$total_stage_type[1]/nrow(stage_winners_2000s)`) of all stages in an edition on average, it is crucial for overall winners to be proficient at these stages. Although flat stages are tailored for sprinters and heavier riders, it is also a game of strategy. In most parts of the stage, cyclists ride close together in the peloton for favourable aerodynamic conditions by drafting. Studies have proven that this tactical behaviour is especially strong with the dynamics of the peloton, where riders can save up to 30% of energy costs (@Prinz2012). At the final 25km, teams form breakaway groups to split from the peloton and accelerate towards the finishing line @vogt2007cycling. Overall winners tend to be particularly good at this strategy, and are ranked ten and under for most of the flat stages (Figure \@ref(fig:ranks-by-stage-type))
+
+## Conclusion
+
+Each year, tour organisers vary the stages for the course, forcing riders to contending for the yellow jersey to tailor their tactics for the different adversities in each course
+
+Our analysis asserts that overall winners does not triumph without his team as the speediest rider may not surpass a group of cyclists. Team allows their team leader take advantage of aerodynamics to ride at higher speeds with less energy expended, preserving his energy for critical stages.
+
+Overall winners do not necessarily win all stages, but have appeared to consistently ranked 
+
+\clearpage
+
+# References
 
