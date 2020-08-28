@@ -260,9 +260,23 @@ winners_name <- winners %>%
   arrange(winner_name) %>%
   group_by(winner_name) %>%
   slice(1)
+```
 
-winner_stages_combined <-  inner_join(stages_speed_names, winners_name, by = "winner_name") %>%
-  drop_na()
+```{r combining-rider-information}
+winner_stages_combined <- inner_join(stages_speed_names, winners_name, by = "winner_name") %>%
+  drop_na() %>%
+  mutate(stage_number = as.numeric(stage_number)) %>%
+  group_by(stage_number, Type_terrain) %>%
+  summarise(avg_speed = mean(speed_kmhr))
+
+rest_field_stages_combined <- anti_join(stages_speed_names, winners_name, by = "winner_name") %>%
+  drop_na() %>%
+  mutate(stage_number = as.numeric(stage_number)) %>%
+  group_by(stage_number, Type_terrain) %>%
+  summarise(avg_speed = mean(speed_kmhr)) %>%
+  mutate(the_field = "The Field")
+
+
 ```
 
 In order to assess the overall winners average stage speed the stage_clean dataset, which contained each riders elapsed timem and tdf_stages, which contained each individual stage information, was required to be combined together. This was achieved by making a new variable that contained the stage number and date which then acted as the key. To display the stage results of overall winning riders only, the names had to align for an inner join to be used however, the rider names in the stage_clean dataset provided the surname first which required a regular expression to be used to target the riders first name and generate a new variable with the appropriate order of their names. Furthermore, given the variation in each stage from year to year, the stages have been grouped by the three main types of stages. The dataset has been filtered to show results that are post the begining of the "doping era" of cycling which saw the emergence of the banned substance EPO which to this day is still are still hard to detect @{McKay2013}. 
@@ -270,20 +284,22 @@ In order to assess the overall winners average stage speed the stage_clean datas
 ```{r plot-speeds, fig.cap = "Average stage speeds across the three main terrains for overall winners in km/h, since 1988"}
 #speeds across different stages
 winner_stages_combined %>%
-  mutate(stage_number = as.numeric(stage_number)) %>%
-  group_by(stage_number, Type_terrain) %>%
-  summarise(avg_speed = mean(speed_kmhr)) %>%
   ggplot(aes(x = as.factor(stage_number),
              y = avg_speed,
              color = Type_terrain)) +
   geom_point() +
+  geom_point(data = rest_field_stages_combined,
+             aes(x = as_factor(stage_number),
+                 y = avg_speed,
+                 color = the_field,
+                 alpha = .4)) +
   theme_linedraw() +
   ggtitle("Overall winners average stage speeds") +
   ylab("Average Speed, km/h") +
   xlab("Stage Number") +
   scale_y_continuous(breaks = seq(0, 50, 5)) +
-  labs(color = "Stage Types")
-
+  labs(color = "Stage Types") +
+  facet_wrap(~Type_terrain)
 ```
 
 Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overall winning riders sicne 1988, across all the stages and stage types with stage number on the x axis and the average speed in kilometers per hour on the y axis. It is evident that speeds on mountain stages are on average lower then hilly, flat and time trial stages with the highest speeds coming from the time trial stages. 
