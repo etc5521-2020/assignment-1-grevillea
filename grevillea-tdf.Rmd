@@ -145,66 +145,11 @@ tdf_stages_2019 <- tdf_stages_2019 %>%
 tdf_stages <- rbind(tdf_stages, tdf_stages_2018, tdf_stages_2019)
 ```
 
-
-```{r scraping}
-# Alter table to be consistent with `tdf_stages` df
-tdf_stages_2018 <- tdf_stages_2018 %>%
-  mutate(Stage = as.factor(Stage)) %>%
-  select(-c(NA., NA..1, Stage.type)) %>% # remove unnecessary variables
-  filter(!is.na(Stage)) %>% # filter away rest days
-  rename(Type = Stage.type.1) %>%
-  # extract origin& destination from Course variable
-  separate(Course, 
-           c("Origin", "Destination"), 
-           sep = " to ") 
-  
-# Extract winner countries from `winner variable`
-tdf_stages_2018$Winner_Country <- 
-# Get parenthesis and what is inside
-str_extract(string = tdf_stages_2018$Winner, 
-           pattern = "[(]...[)]") %>%  
-  # Extract words from the parenthesis only
-  str_extract(pattern = boundary("word")) 
-tdf_stages_2019$Winner_Country <-
-  #Get parenthesis and what is inside
-  str_extract(string = tdf_stages_2019$Winner,
-              pattern = "[(]...[)]") %>%
-  str_extract(pattern = boundary("word")) # Extract words only 
-tdf_stages_2018 <- tdf_stages_2018 %>%
-  mutate(Winner = str_remove(string = tdf_stages_2018$Winner, # Remove country details
-                             pattern = "[(]...[)]"),
-         Distance = str_remove(string = tdf_stages_2018$Distance,  # Remove miles details
-                             pattern = "[(].+[)]")) %>%
-  mutate(Distance = parse_number(Distance)) # Convert distance to numeric
-tdf_stages_2019 <- tdf_stages_2019 %>%
-  mutate(Winner = str_remove(string = tdf_stages_2019$Winner, # Remove country details
-                             pattern = "[(]...[)]"), 
-         Distance = str_remove(string = tdf_stages_2019$Distance, # Remove miles details
-                             pattern = "[(].+[)]")) %>%
-  mutate(Distance = parse_number(Distance)) # Convert distance to numeric
-
-# Adding year to Date variable
-## add year variable
-tdf_stages_2018 <- tdf_stages_2018 %>%
-  mutate(Date = paste(Date, 2018)) %>%
-  # convert character to date format consistent with tdf_stages
-  mutate(Date = lubridate::dmy(Date))
-
-# Adding year to date
-## add year variable
-tdf_stages_2019 <- tdf_stages_2019 %>%
-  mutate(Date = paste(Date, 2019)) %>%
-  # convert character to date format consistent with tdf_stages
-  mutate(Date = lubridate::dmy(Date))
-# Bind rows of all tdf stages
-tdf_stages <- rbind(tdf_stages, tdf_stages_2018, tdf_stages_2019)
-```
-
 ```{r write-csv}
 # Write .csv files and read-in data
 winners %>% write_csv(here::here("data/tdf_winners.csv"))
 stage_clean %>% write_csv(here::here("data/stage_data.csv"))
-tdf_stages %>% write_csv(here::here("data/tdf_stages.csv"))
+tdf_stages %>% write_csv(here::here("data/tdf_stages.csv")) 
 ```
 
  1. How do stage speeds change for overall winners across the tour?
