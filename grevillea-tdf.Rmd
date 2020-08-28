@@ -296,10 +296,13 @@ ggplotly()
 
 Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have failed to complete the specific stage types with the stage type o the x axis and the percentage on the y axis. The most strenuous and and gruelling stages of the Tour are the Mountain and Hilly stages whicg show to be the hardest terrains for riders to finish with the highest percentage of riders failing to complete mountain stages being 2.13% and Hilly stages with 1.61%. Time trial's have the least percentage of failed to complete riders with .29% and Flat stages being over double that. Time trial stages are run individually and are usually shorter distances on most often on more flatter terrain these characteristics make it much safer, reduced physical risk with strain and collision, and relatively easier than the other three which makes sense as to why has the lowst non-completion rate while, Flat stages, despite being flat run a higher risk of collision which could explain it having a percentage almost double that of time trail incompletion rates. 
 
-# 2. Is there a change in biological traits of overall winners over the years?
+# 2. Is there a change in physcial/biological traits of overall winners over the years?
 
-Doverall winners, top sprinters or climbers have similar features (e.g. body type, age)? 
+The Tour de France conists of a range of stage types which across differnt terrains which range from flat groud, mountains and hilly. Each of this terrains may suit a certain type of body compostion given the different elements and requirements for the specific terrain such as flat terrain and time trials better suits sprinters who are more likely to have a more muscular frame to generate power and mountain stages better suiting a slimmer build given how strenuous and endurance based those stages are. Given the overall winner is required to have the lowest elapsed time, this section will be assessing how the winners physical and biological traits match up with the other competitors and stage specialists.
 
+## Do overall winners, top sprinters or climbers have similar features (e.g. body type, age)? 
+
+The top climbers, sprinters and time trial lists were isolated by targetting the winners of the flat and mountain stages in the rdf_stages section, with the top 6 riders from each category being selected. However, their height and weight were not included in the original dataset and in order to compare the body types with the overall winner their dimensions were sourced online and compiled into a tibble and then row binded together.
 ```{r physiological-make-up-different-terrain-riders}
 tdf_stages_dope_era <- tdf_stages %>%
   filter(Date >= '1988-07-03')
@@ -342,22 +345,28 @@ indiv_tt_body <- tibble(winner_name = c("Lance Armstrong", "Miguel Indurain", "F
                         weight = c(75, 76, 80, 76, 70, 75),
                         height = c(1.77, 1.86, 1.86, 1.83, 1.75, 1.85)) %>%
   mutate(rider_type = "Individual Time Trial")
-```
 
-```{r body-types-combine-and-plot}
 winners_body <- winners %>%
   filter(start_date >= '1988-07-03') %>%
   select(winner_name, weight, height) %>%
   mutate(rider_type = "Overall winner")
 
 rider_body_types <- rbind(winners_body, indiv_tt_body, sprinters_body, climbers_body)
+```
 
+```{r body-types-combine-and-plot, fig.cap = "Comparison of overall winner, sprinter and climbers body types"}
 rider_body_types %>%
   ggplot(aes(x = weight,
              y = height)) +
   geom_point() +
-  facet_wrap(~rider_type)
+  facet_wrap(~rider_type) +
+  theme_linedraw() +
+  ggtitle("Comparison of body types") +
+  ylab("Height") +
+  xlab("Weight")
 ```
+
+Figure \@ref(fig:body-types-combine-and-plot) visualises the body types of climbers, time trialist, sprinters and the overall winner with weight along the x axis and height on the y axis. It is evident from the figure that elite climbers and overall winner have a relatively more similar body type and elite individual time trialist and sprinter have a more similar frame. Climbers and overall winners tend to be ligher then individual time trialist and sprinters however, all of their heights are relatively similar with climbers and overall winners ranging to lower heights. This could indicate that being built with a climbers body that is lighter may provide a better opportunity to be the overall winner of the tour.
 
 ## Are competitors younger/older these days?
 
