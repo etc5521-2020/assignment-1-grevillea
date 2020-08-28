@@ -145,19 +145,6 @@ tdf_stages_2019 <- tdf_stages_2019 %>%
 tdf_stages <- rbind(tdf_stages, tdf_stages_2018, tdf_stages_2019)
 ```
 
-```{r write-csv}
-# Write .csv files and read-in data
-winners %>% 
-  write_csv(here::here("data/tdf_winners.csv"))
-
-stage_clean %>% 
-  write_csv(here::here("data/stage_data.csv"))
-
-tdf_stages %>%
-  # Replace capitalised words with lower-case letters
-  clean_names %>%
-  write_csv(here::here("data/tdf_stages.csv")) 
-```
 
 ```{r scraping}
 # Alter table to be consistent with `tdf_stages` df
@@ -341,7 +328,6 @@ total_riders_dnf_terrain %>%
   xlab("Stage Type") +
   ylab("Percentage") +
   theme_linedraw() 
-ggplotly()
 ```
 
 Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have failed to complete the specific stage types with the stage type o the x axis and the percentage on the y axis. The most strenuous and and gruelling stages of the Tour are the Mountain and Hilly stages whicg show to be the hardest terrains for riders to finish with the highest percentage of riders failing to complete mountain stages being 2.13% and Hilly stages with 1.61%. Time trial's have the least percentage of failed to complete riders with .29% and Flat stages being over double that. Time trial stages are run individually and are usually shorter distances on most often on more flatter terrain these characteristics make it much safer, reduced physical risk with strain and collision, and relatively easier than the other three which makes sense as to why has the lowst non-completion rate while, Flat stages, despite being flat run a higher risk of collision which could explain it having a percentage almost double that of time trail incompletion rates. 
@@ -472,7 +458,7 @@ Figure \@ref(fig:age-winner) visualises the age of the overall winner since 1988
 ## Is there a difference between the ages of overall winners and stage winners?
 
 In order to assess if there was an age difference between overall winners and stage winners, the stage_clean dataset was filtered to only show first rank for each stage since 1988.
-```{r overall-winner-age-stage-winner-age, fig.cap = "Difference in average age for overall winers and stage winners"}
+```{r overall-winner-age-stage-winner-age}
 stage_winner_age <- stage_clean %>%
   filter(year >= "1988",
          rank == "1") %>%
@@ -484,8 +470,12 @@ winners_age <- winners %>%
   select(age) %>%
   mutate(type = "Overall winner")
 
-rbind(stage_winner_age, winners_age) %>%
-  rename(type_of_winner = type) %>%
+age_stage_winner <- rbind(stage_winner_age, winners_age) %>%
+  rename(type_of_winner = type)
+```
+
+```{r plot-age-type-of-winner}
+  age_stage_winner%>%
   ggplot(aes(x = type_of_winner,
              y = age)) +
   geom_boxplot() +
@@ -504,7 +494,7 @@ Figure \@ref(fig:overall-winner-age-stage-winner-age) presents the age distribut
 
 All though there is an individual winner at the end of every Tour de France, it is deemed a team sport given how much each rider is aided by who they share a jersey with. Teams will look to protect their lead rider by looking to gain ideal position for their lead rider and assisting them in conserving energy through a range of different strategies @{HopkinsPhillips}. In order to assess the most prevelant teams in Tour de France, the data set was filtered to show results from 1969 which sees the re-introduction and professional sponsorship of teams @{McGann}. 
 
-```{r most-prevelant-teams, fig.cap "Displays the teams with the most wins since 1969"}
+```{r adjusting-team-names}
 #changed the team names to the most updated
 team_names_to_date <- winners %>%
   filter(start_date >= '1969-06-28') %>%
@@ -517,8 +507,10 @@ team_names_to_date <- winners %>%
          winner_team = replace(winner_team, winner_team == "Team CSC", "Team Saxo Bank"),
          winner_team = replace(winner_team, winner_team == "Team Sky", "Team Ineos"),
          winner_team = replace(winner_team, str_detect(winner_team, "Peugeot"), "Peugeot"),
-         winner_team = replace(winner_team, str_detect(winner_team, "Renault"), "Renault"))
+         winner_team = replace(winner_team, str_detect(winner_team, "Renault"), "Renault"))``
+```
 
+```{r most-prevelant-teams, fig.cap "Displays the teams with the most wins since 1969"}
 team_names_to_date %>%
   select(start_date, winner_name, winner_team) %>%
   group_by(winner_team) %>%
