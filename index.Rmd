@@ -92,21 +92,21 @@ library(rvest)
 ```
 
 ```{r read-data, include = FALSE}
-stage_data <- read.csv(here::here("data/stage_data.csv"))
-tdf_winners <- read.csv(here::here("data/tdf_winners.csv"))
+stage_clean <- read.csv(here::here("data/stage_data.csv"))
+winners <- read.csv(here::here("data/tdf_winners.csv"))
 tdf_stages <- read.csv(here::here("data/tdf_stages.csv"))
 ```
 
 The data used for this analysis originates from the `tdf` R package, which is essentially a container for the  `editions` data frame. This data set is hosted on [GitHub](https://github.com/alastairrushworth/tdf) and is readily available. The data set encompasses the historic data about Tour de France riders, stages and winners.
 
-`tdf_winners` corresponds to a condensed version of the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019). Some of the variables include:
+`winners` corresponds to a condensed version of the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019). Some of the variables include:
 
 
 ```{r}
 glimpse(tdf_winners)
 ```
 
-- `tdf_winners` variables contains the overall winner's biographical data and information about the race for a given edition, which comprises of:  
+- `winners ` variables contains the overall winner's biographical data and information about the race for a given edition, which comprises of:  
 - `start date` start of the Tour De France edition
 - `winner name` name of the overall winner (*i.e. winner of the General Classification)
 - `distance` aggregate route distance (in km) covered by the entire race
@@ -120,7 +120,7 @@ glimpse(tdf_winners)
 - `nationality` overall winner's nationality
 
 
-The `editions` dataset contains variable `stage results`, which represents a list of lists where each element contains a list of stage results pertaining to a particular year or edition of Tour De France. When we unnest, or flatten it back to its regular columns, we get `tdf_stages` and `stage_data` dataset.
+The `editions` dataset contains variable `stage results`, which represents a list of lists where each element contains a list of stage results pertaining to a particular year or edition of Tour De France. When we unnest, or flatten it back to its regular columns, we get `tdf_stages` and `stage_clean` dataset.
 
 
 ```{r explore-tdf-stages, include = FALSE}
@@ -136,10 +136,10 @@ The `tdf_stages` data set depicts the details of the stage winners at each stage
 - `winner`: Name of the stage winner
 
 ```{r explore-stage-data, include = FALSE}
-glimpse(stage_data)
+glimpse(stage_clean)
 ```
 
-The `stage_data` is expands on the `tdf_stages` dataset, including results of all riders and their ranks at every stage where each row corresponds to the result of a particular rider such as points accumulated for the stage. This data set includes variables such as:
+The `stage_clean` is expands on the `tdf_stages` dataset, including results of all riders and their ranks at every stage where each row corresponds to the result of a particular rider such as points accumulated for the stage. This data set includes variables such as:
 
 `edition`: Race edition pertaining to the year
 `rider`: The name of the rider/participant
@@ -150,7 +150,7 @@ The `stage_data` is expands on the `tdf_stages` dataset, including results of al
 
 ## Problems encountered 
 
-Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the Tour De France data set. However, we discovered errors in the `time` and `elapsed` variables in the `stage_data` where the period objects were incorrect. Thus, we opted to use the cleaning script found in the same github link and made some adjustments such as changing the object names to reproduce the same data set that was intended. 
+Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the Tour De France data set. However, we discovered errors in the `time` and `elapsed` variables in the `stage_clean` where the period objects were incorrect. Thus, we opted to use the cleaning script found in the same github link and made some adjustments such as changing the object names to reproduce the same data set that was intended. 
 
 Furthermore, `tdf_stages` data set only provided data till the 2017 edition while the actual dataset covered all the way to 2019. Accordingly, we web scraped the data from these the Wikipedia (for [2018](https://en.wikipedia.org/wiki/2018_Tour_de_France) and [2019](https://en.wikipedia.org/wiki/2019_Tour_de_France)) to obtain the stages data set for 2018 and 2019. These Wiki pages corresponds to how the actual data set obtained its data, making it straightforward to structure the data to a tidy format analogous with the `tdf_stages` data set, assuring smooth binding of the data.
 
@@ -165,7 +165,7 @@ Furthermore, `tdf_stages` data set only provided data till the 2017 edition whil
 ## How have races& riders evolved over time?
 
 ```{r, eval = FALSE}
-ggplot(tdf_winners) +
+ggplot(winners ) +
   geom_bar(aes(x = year,          
                y = distance),
            stat = "identity") +
@@ -174,14 +174,14 @@ ggplot(tdf_winners) +
 
 ```{r}
 # insert year variable
-tdf_winners <- tdf_winners %>%
+winners  <- winners  %>%
   mutate(start_date = as.Date(start_date)) %>%
   mutate(year = year(start_date))
 ```
 
 
 ```{r tdf_dist}
-tdf_dist <- ggplot(data = tdf_winners) +
+tdf_dist <- ggplot(data = winners ) +
   geom_point(aes(x = year,
                  y = distance),
              colour = "#ff4d4d") +
@@ -190,7 +190,7 @@ tdf_dist <- ggplot(data = tdf_winners) +
 ```
 
 ```{r tdf-avg-speed}
-tdf_avg_speed <- ggplot(tdf_winners) +
+tdf_avg_speed <- ggplot(winners ) +
   geom_point(aes(x = year,
                  y = distance / time_overall),
              colour = "blue") +
@@ -210,7 +210,7 @@ gridExtra::grid.arrange(tdf_dist, tdf_avg_speed, ncol = 2)
 
 
 ```{r}
-ggplot(tdf_winners) +
+ggplot(winners) +
   geom_point(aes(x = year,
                  y = nationality,
                  colour = nationality),
@@ -230,12 +230,12 @@ The purpose of this section is to explore the trends of overall winners. We star
 
 ```{r wrangle-stage-data, warning = FALSE}
 # Parse stage number
-stage_data <- stage_data %>%
+stage_clean <- stage_clean %>%
   mutate(stage = str_extract(stage_results_id, "\\d+")) %>% 
   mutate(stage = as.factor(stage)) # change to factor for joins
 
 # parse elapsed into lubridate::period variable
-stage_data <- stage_data %>%
+stage_clean <- stage_clean %>%
   mutate(elapsed = hms(elapsed))
 ```
 
@@ -255,20 +255,20 @@ tdf_stages_2000s <- tdf_stages %>%
 tdf_stages_2000s$stage <- ifelse(tdf_stages_2000s$stage == "P", "0", as.factor(tdf_stages_2000s$stage)) 
 
 # include year variable for join
-tdf_winners <- tdf_winners %>%
+winners <- winners %>%
   mutate(year = year(start_date))
 
 # Extract overall winners' names
-winners_2000s <- tdf_winners %>%
+winners_2000s <- winners %>%
   filter(between(year, 2000, 2019)) %>%
   select(winner_name, year)
 
-# Change order of winner names to match with stage_data rider names
+# Change order of winner names to match with stage_clean rider names
 winners_2000s$winner_name <-
   str_replace(string = winners_2000s$winner_name, pattern = "([^ ]+) ([^ ]+)", replacement = "\\2 \\1")
 
 # Extract stages details 
-stage_winners_2000s <- stage_data %>%
+stage_winners_2000s <- stage_clean %>%
   filter(between(year, 2000, 2019)) %>%
   # include stage data of overall winner only
   inner_join(winners_2000s, by = c("year", "rider" = "winner_name")) %>% 
@@ -296,22 +296,22 @@ stage_winners_2000s <- stage_winners_2000s %>%
 ## A fallacy: Overall Winners leads all stages
 
 ```{r stages-led-plot, fig.cap = "How often do Overall Winners Wear the Yellow Jersey"}
-ggplot(tdf_winners) +
+ggplot(winners) +
   geom_point(aes(x = year,
                  y = stages_led,
                  ),
            alpha = 0.8) +
-  geom_point(data = subset(tdf_winners, year %in% c(1928, 1934)), # Riders who led 22 stages
+  geom_point(data = subset(winners, year %in% c(1928, 1934)), # Riders who led 22 stages
              aes(x = year,
                  y = stages_led,
                  ),
              colour = "#bc3a3a") +
   # Add text on years 1928 and 1934
-  geom_text(data =  subset(tdf_winners, year %in% 1928), 
+  geom_text(data =  subset(winners, year %in% 1928), 
             aes(x = year * 0.9977, y = stages_led * 1.003, 
                 label = "1928", 
                 fontface = "bold")) +
-  geom_text(data =  subset(tdf_winners, year %in% 1934), 
+  geom_text(data =  subset(winners, year %in% 1934), 
             aes(x = year * 1.002, y = stages_led * 1.003, 
                 label = "1934", 
                 fontface = "bold")) +
@@ -461,25 +461,25 @@ With flat stages accounting for nearly one third (`r rank_summ$total_stage_type[
 
 ```{r stage-data-cumsum, eval = FALSE}
 # Find total time taken to complete a stage
-stage_data <- stage_data %>%
+stage_clean <- stage_clean %>%
   mutate(hour_to_mins = hour(elapsed)*60,
          sec_to_mins = round((second(elapsed)/60), digits = 4),
          mins = minute(elapsed)
          ) 
 
 # Compute total mins per stage for each rider
-stage_data <- stage_data %>%
+stage_clean <- stage_clean %>%
   rowwise() %>%
   mutate(total_mins = sum(c(hour_to_mins, sec_to_mins, mins))) # Round to 4 decimal places
   
 # Find cumulative sum after each stage 
-stage_data <- stage_data %>%
+stage_clean <- stage_clean %>%
   group_by(edition, rider) %>%
   mutate(cum_total_mins = cumsum(total_mins)) 
 
 
 # Maybe I can colour by the stage type? Need to take stage info from tdf_stages
-stage_data %>%
+stage_clean %>%
   filter(year == 2012) %>%
   ggplot() +
   geom_point(aes(x = stage,
@@ -494,11 +494,11 @@ stage_data %>%
 
 ```{r test, eval = FALSE}
 # Create new data set with only winners
-tdf_winners <- tdf_winners %>%
+winners <- winners %>%
   mutate(year = year(start_date))
 
 # Create new data set with winners for 2019
-winners_2017 <- tdf_winners %>%
+winners_2017 <- winners %>%
   filter(year == 2017) 
 
 # Insert stage records by joining table
@@ -520,10 +520,10 @@ str_view_all(stage_2017$rider, "Chris Froome", match = TRUE)
 
 ```{r, eval = FALSE}
 # Transform factor to original numeric values
-stage_data$stage <- as.numeric(levels(stage_data$stage))[stage_data$stage]
+stage_clean$stage <- as.numeric(levels(stage_clean$stage))[stage_clean$stage]
 
 # Find first& last stage of each year
-finish_summ <- stage_data %>%
+finish_summ <- stage_clean %>%
   group_by(year) %>%
   # Filter to stage 1, not 0 because some riders don't race in prologue
   filter(stage == 1 | stage == max(stage)) %>%
@@ -535,7 +535,7 @@ finish_summ <- stage_data %>%
                values_to = "stage")
 
 # Filter to only first& last stages of each edition
-stage_finish <- stage_data %>%
+stage_finish <- stage_clean %>%
   inner_join(finish_summ, by = c("year", 
                                  "stage")) %>%
   # filter out years with error in rider data
