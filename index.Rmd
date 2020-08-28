@@ -280,7 +280,7 @@ Although Figure \@ref(fig:age-winner) shows a slight upward trend in winning age
 
 ## Is being part of team important?
 
-Given the strategic nature and benefits that riders gain from their team, the following section will be analysing if being part of a particular team may make a rider more likely to win the Tour given how prevelant that team produces a winner. In order to assess the most prevelant teams in Tour de France, the data set was filtered to show results from 1969 which saw the re-introduction and professional sponsorship of teams @{McGann}. 
+Given the strategic nature and benefits that riders gain from their team, the following section will be analysing if being part of a particular team may make a rider more likely to win the Tour given how prevelant that team produces a winner. The data set will be focusing on winners from 1969 given this was the year that professional teams were re-intriduced into the Tour de France as previously mentioned. In order to assess the most prevelant teams in Tour de France, the data set was filtered to show results from 1969 which saw the re-introduction and professional sponsorship of teams @{McGann}. 
 
 ```{r most-prevelant-teams, fig.cap "Displays the teams with the most wins since 1969"}
 team_names_to_date %>%
@@ -299,7 +299,7 @@ team_names_to_date %>%
   scale_y_continuous(breaks = seq(0, 8, 1))
 ```
 
-Figure \@ref(fig:most-prevelant-teams) displays the most prevalent teams in Tour history since 1969 with the teams on the x axis and the number of wins on the y axis. This figure shows 5 teams which have domianted the results and collectively represented 60% of the winners since 1969. Specifically, Team Ineos who are considered the most dominant team in Tour history credit their performance to improved training habits and implementation of recovery techniques, evolving technologies and marginal gains across the board which collectievly add up to an overall better performance across the team. Furthermore, the financial backing of these larger teams allwo them to attract top tier riders, coaches and staff given the pay packets they are able to provide as well as being able to afford all the the state of the art practices that assist performance thus potentially improving their dominance relative to smaller teams @{LindseyJ}. This may indicat that a rider may have a better chance of winning the Tour de France depending on the team they choose/are chosen for.
+Figure \@ref(fig:most-prevelant-teams) displays the most prevalent teams in Tour history  with the teams on the x axis and the number of wins on the y axis. This figure shows 5 teams which have domianted the results and collectively represented 60% of the winners since 1969. Specifically, Team Ineos who are considered the most dominant team in Tour history credit their performance to improved training habits and implementation of recovery techniques, evolving technologies and marginal gains across the board which collectievly add up to an overall better performance across the team. Furthermore, the financial backing of these larger teams allwo them to attract top tier riders, coaches and staff given the pay packets they are able to provide as well as being able to afford all the the state of the art practices that assist performance thus potentially improving their dominance relative to smaller teams @{LindseyJ}. This may indicate that a rider may have a better chance of winning the Tour de France depending on the team they choose/are chosen for.
 
 ## Does it matter where you're from?
 
