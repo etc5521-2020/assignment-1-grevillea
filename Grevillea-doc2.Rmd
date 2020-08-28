@@ -378,9 +378,9 @@ grid.arrange(pct_total_DNF_OTL, pct_total_DNS, nrow = 2)
 ```
 
 
-## 2. Is there a change in biological/physical traits of overall winners over the years?
+## 2. Is there a change in biological traits of overall winners over the years?
 
-The body mass index is a measurement of a persons weight relative to their height and effectively indicating the level of body fat of an individual. BMI is widely used as an indicator of health and fitness. The BMI of the winnings riders was calculated using the  
+The body mass index (BMI) is a measurement of a persons weight relative to their height and effectively indicating the level of body fat of an individual. BMI is widely used as an indicator of health and fitness. The BMI of the winnings riders was calculated using by dividing their weight over height^2. The plot was originally 
 ```{r bmi, fig.cap = "Body mass index change over time"}
 winners_teams_named <- winners %>%
   filter(start_date >= '1969-06-28') %>%
@@ -404,14 +404,22 @@ top_teams <- winners_teams_named %>%
 
 #Looking at BMI change overtime, grabbed from previous analysis and added the teams with > 3 winners and the trend over time
 winners %>%
-ggplot(aes(x = start_date, y = weight / height^2)) +
+ggplot(aes(x = start_date, 
+           y = weight / height^2)) +
   geom_point(na.rm = TRUE) +
   geom_point(data = top_teams, aes(x = start_date, 
                                    y = weight / height^2,
-                                   color = winner_nam)) +
+                                   color = winner_team)) +
   geom_smooth(alpha = .1, se = FALSE) +
-  theme_linedraw()
+  theme_linedraw() +
+  theme_bw() +
+  ggtitle("Winning riders BMI") +
+  xlab("Year") +
+  ylab("BMI") + 
+  labs(color = "Top Teams")
 ```
+
+Figure \@ref(fig:bmi) displays the BMI of each winning rider with
 
 ###  overall winners, top sprinters or climbers have similar features (e.g. body type, age)? Were they consistent over the years?
 Do overall winners and stage winners have similar characteristics?
