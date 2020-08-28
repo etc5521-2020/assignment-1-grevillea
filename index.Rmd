@@ -49,8 +49,6 @@ What are the most important characteristics and attributes to win the tour and h
 
 Tour De France ("Le Tour") is an annual men's bicycle race that in modern days encompasses a 21-day course that covers approximately 3,500km. It is predominantly held in France while often passing through other countries. Cyclists from around the world gather for a chance to win the prestigious 'Tour De France' trophy, along with a cash prize of €450,000.
 
-## Stages
-
 Split into various stages:
 - flat stages
 - hilly stages
@@ -60,36 +58,23 @@ Split into various stages:
 
 One stage is performed every day, covering approximately 225km& about 5.5hours to complete. Each stage has a winner, & the rider that completes the most stages in the shortest amount of time wins the overall title. 
 
-Permitted disqualification time in which riders must finish (Winners time + pre-determined % of that time)
-
 ## The Jersey Hierarchy
 
-The same coloured jerseys are worn within teams, current road champions get to wear their team jerseys with their country's colour& reigning world champions wears their team jerseys with stripes.
+The colour and patterns of jerseys  to look out for in every race. As a brief overview,
+the same coloured jerseys are worn within teams, current road champions get to wear their team jerseys with their country's colour& reigning world champions wears their team jerseys with stripes. The jersey hierarchy, which is based on the how old the competition has been implemented, serves as a symbolic purpose:
 
-**Yellow: General classification - Race leader**  
-- All stages are timed, and the rider with the lowest aggregate time gains the privilege to wear this yellow jersey
-- "General Classification" is the oldest and main competition sought after by competitors, where the winner of this will win the overall title
--  it's not uncommon to have five or more different leaders throughout the three weeks of racing.
+**Yellow: General classification - Race leader**: "General Classification" is the oldest and main competition sought after by competitors, where the winner of this will win the overall title. after each stage, the rider with the lowest aggregate time gains the privilege to wear the most coveted jersey in the race, the yellow jersey.  
 
-**Red& white polka-dot: Mountains classification - meilleur grimpeur (Best climber)**   
-- Worn by the rider who at the start of each stage, has the largest number of climbing points
-- With stages containing climbs, points are awarded to riders who reach the summit first.
+**Red& white polka-dot: Mountains classification - meilleur grimpeur (Best climber)**: With stages containing climbs, points are awarded to riders who reach the summit first. Thus, this worn by the rider who at the start of each stage, has the largest number of climbing points.
 
-**Green: Points classification - Top sprinter**  
-- Worn by rider who has the greatest number of points at the start of each stage.
-- Points are given to first 15 riders to finish a stage
-- Additional points are also given to first 15 riders to cross a pre-determined 'sprint' point in each stage
-- The number of points awarded varies depending on the type of stage; Flat stages having the most points at the finish while time trials& mountain stages have the least.
+**Green: Points classification - Top sprinter**:   
+- Worn by rider who has the greatest number of points at the start of each stage, where points are given to first 15 riders to finish a stage. Furthermore, additional points are also given to first 15 riders to cross a pre-determined 'sprint' point in each stage. These jerseys are usually worn by 'sprinters'.
 
-**White: Young rider classification - Most impressive rider, under 26 years old**  
-- Determined the same as general classification, where it is restricted to riders that are under 26 years old
+**White: Young rider classification - Most impressive rider, under 26 years old**: Determined the same as general classification, where it is restricted to riders that are under 26 years old.  
 
 ## Teams
 
-You may ask, why have teams when there is only one individual champion for the General Classification? '*Domestiques*' (french in servant), a term frequently used to describe riders who support a team leader to win stages and accumulate points to hopefully win the tour. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy; This is known as 'Lead-out Trains'.
-
-For the bulk of the race, cyclists don't usually ride as fast as they can throughout the race, but cycle in a main group known as a peloton. 
-
+You may ask, why have teams when there is only one individual champion for the General Classification? '*Domestiques*' (french in servant), a term frequently used to describe riders who support a team leader to win stages and accumulate the least elapsed time at the end of the race. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy; This is known as 'Lead-out Trains'. Teams typically consists of 8 riders and are denoted by numbers 1-9, where the team leader wears the lowest number.
 
 # Data description
 
@@ -115,6 +100,7 @@ tdf_stages <- read.csv(here::here("data/tdf_stages.csv"))
 The data used for this analysis originates from the `tdf` R package, which is essentially a container for the  `editions` data frame. This data set is hosted on [GitHub](https://github.com/alastairrushworth/tdf) and is readily available. The data set encompasses the historic data about Tour de France riders, stages and winners.
 
 `tdf_winners` corresponds to a condensed version of the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019). Some of the variables include:
+
 
 ```{r}
 glimpse(tdf_winners)
@@ -148,8 +134,6 @@ The `tdf_stages` data set depicts the details of the stage winners at each stage
 - `distance`: Distance (in KM) for the stage
 - `type`: type of stage
 - `winner`: Name of the stage winner
-
-
 
 ```{r explore-stage-data, include = FALSE}
 glimpse(stage_data)
