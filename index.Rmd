@@ -12,39 +12,9 @@ output:
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
 
-# Potential Questions
+# Introduction 
 
-**Primary Question:**  
-What are the most important characteristics and attributes to win the tour and how have they evolved over time?
-
-**Secondary:**  
-1. What is the average speed of overall winners for each stage? 
-  - Are they faster in a certain terrain (e.g. hill, mountain, flat)? 
-  - How important are stage wins for the overall winner? 
-    - *Note:* complements Q3.
-  - Are there certain tracks/terrains that most riders fail to complete (i.e. NA in rank/elapsed in stage data)?
-
-2. Is there a change in biological/physical traits of overall winners over the years? 
-  - Do overall winners, top sprinters or climbers have similar features (e.g. body type, age)? Were they consistent over the years?
-  - Are competitors younger/older these days?
-  - Is a certain team producing winners more prevalently? - e.g. Do these teams have good salary, nutritionists etc.
-  - Is a certain nation producing winners more prevalently?
-
-3. How many stages does an overall winner usually lead by? Do they usually wear the yellow jersey from start to end?
-  - Is there a specific trend (e.g. Win in the last few stages or do they win certain terrains like mountain stages)?      
-  - *Note:* don't have to win any stages or have the most points to be overall winner
-  - How are they ranked in each stage?
-
-# Introduction and motivation
-
-**Intro:**
-- History of Tour De France
-- What is it? How to win?
-  - Special jerseys
-  - Different stages
-  - Team sport
-  
-The Tour de France is a cycling tournament that is held in France annually with the winner being the rider with lowest elapsed time after the completion of every stage which spans across 21 stages over 23 gruelling days. It is considered one of, if not, the most prestigious race that elite cyclists can partake in given the level of difficulty of riding through the ranging beautiful French landscapes [https://www.britannica.com/sports/Tour-de-France]. Despite being an individual event, riders travel through the whole country going through the scenic French countryside in teams of 8 in order to strategically position the team leader in the best position to win the general classifications. Teams work with their rider to reduce the physical strain of the course, strategically target particular parts and block certain riders from advancing among many other coordinated efforts for the overall benefit of their lead rider [https://slate.com/news-and-politics/2005/07/how-do-cycling-teams-work.html]. The teams would pass through long country side roads, steep alpine regions and tight city areas, covering terrain ranging from rolling hills, long flat grounds and steep mountainous incline in their quest for victory. The types of terrain are dispersed across the different stages over the 23 days with the breakdown usually consisting of flat stages, mountain stages, hilly stages and time trial stages. The division of the stages and the combination of terrains across the Tour are one of the reasons the Tour is considered so gruelling and one of the greatest difficulties for riders and teams to overcome as each type of terrain usually fits a rider with specific compositions however, in order to be victorious they must be able to perform across all the terrains and plan their strategy to control the race effectively [https://frenchly.us/the-crucial-formations-needed-to-win-the-tour-de-france/#:~:text=In%201903%2C%20to%20help%20boost,became%20the%20Tour%20de%20France.&text=But%20it's%20the%20flat%20and,bike%20race%20in%20the%20world.]. Given the chess-like strategy that runs tandem with the elite physical attributes and skills required to win the general classification, this report will do a deep analysis into the Tour de France historical data to look at the past results, riders, teams and potential winning blueprint to answer the primary question: _“What are the most important characteristics and attributes to win the tour and how have they evolved over time?”_ with a number of follow up questions that will inspect the range of variables associated with winning the Tour de France in oder to ultimately explain what it takes to come out victorious.
+The Tour de France is a cycling tournament that is held in France annually with the winner being the rider with lowest elapsed time after the completion of every stage which spans across 21 stages over 23 gruelling days. It is considered one of, if not, the most prestigious race that elite cyclists can partake in given the level of difficulty of riding through the ranging beautiful French landscapes @{EEB}. Despite being an individual event, riders travel through the whole country going through the scenic French countryside in teams of 8 in order to strategically position the team leader in the best position to win the general classifications. Teams work with their rider to reduce the physical strain of the course, strategically target particular parts and block certain riders from advancing among many other coordinated efforts for the overall benefit of their lead rider @{EngberD}. The teams would pass through long country side roads, steep alpine regions and tight city areas, covering terrain ranging from rolling hills, long flat grounds and steep mountainous incline in their quest for victory. The types of terrain are dispersed across the different stages over the 23 days with the breakdown usually consisting of flat stages, mountain stages, hilly stages and time trial stages. The division of the stages and the combination of terrains across the Tour are one of the reasons the Tour is considered so gruelling and one of the greatest difficulties for riders and teams to overcome as each type of terrain usually fits a rider with specific compositions however, in order to be victorious they must be able to perform across all the terrains and plan their strategy to control the race effectively @{RickmanC}. Given the chess-like strategy that runs tandem with the elite physical attributes and skills required to win the general classification, this report will do a deep analysis into the Tour de France historical data to look at the past results, riders, teams and potential winning blueprint to answer the primary question: _“What are the most important characteristics and attributes to win the tour and how have they evolved over time?”_ with a number of follow up questions that will inspect the range of variables associated with winning the Tour de France in oder to ultimately explain what it takes to come out victorious.
   
 ## History of Tour De France
 
@@ -158,13 +128,10 @@ Furthermore, `tdf_stages` data set only provided data till the 2017 edition whil
 
 # Analysis and findings
 
-[FILL] Should include at least one plot or numerical summary for each of your questions, that helps the reader arrive at an answer. You should also write paragraphs describing the methods, summaries and findings. 
-
-# References
 
 ## Time and place for speed
 
-The following section will be analysing how the overall winners speed and how it changes from stage to stage relative to the rest of the field in order to understand when winning riders believe its most vital to increase their pace over their competitors. In order to conduct this analysis the the rider average speeds in km/h were calculated for each terrain type across every stage. The calculation was done by dividing the elapsed time over the total distance variables from the _stage_clean_ and _tdf_stages_ dataset's. The following analysis will be focusing on the Tour's since 1988 as this is known as the begining of the EPO era for relativitey, given the extreme performance enhancing nature of doping that became prominent from this point onwatds due to the difficulty surrounding its detection @{McKay2013}.
+The following section will be analysing the overall winners speed and how it changes from stage to stage relative to the rest of the field in order to understand when winning riders believe its most vital to increase their pace over their competitors and increase the elapsed time gap between them. In order to conduct this analysis the rider average speeds in km/h were calculated for each terrain type across every stage. The calculation was done by dividing the elapsed time over the total distance variables from the _stage_clean_ and _tdf_stages_ dataset's. The following analysis will be focusing on the Tour's since 1988 as this is known as the begining of the EPO era for relativitey, given the extreme performance enhancing nature of doping that became prominent from this point onwatds due to the difficulty surrounding its detection @{McKay2013}.
 
 ```{r plot-speeds, fig.width = 14, fig.cap = "Average stage speeds across the three main terrains for overall winners in km/h, since 1988"}
 #speeds across different stages
@@ -185,7 +152,7 @@ winner_stages_combined %>%
   scale_y_continuous(breaks = seq(0, 50, 5)) +
   labs(color = "Stage Types") +
   facet_wrap(~Type_terrain)
-ggplotly()
+
 ```
 
 Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overall winning riders since 1988, across all the stages and stage types with stage number on the x axis and the average speed in kilometers per hour on the y axis. _Flat_, _Hilly Stage_, _Mountain_ and _Time Trial_ represent the speeds of the overall winners for each of those terrains and _The Field_ represents the rest of the competitors. From the figure it is evident:
@@ -200,7 +167,7 @@ Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overal
 *Mountain stage types*
     - The combined average speed for both overall winners and the field have a slightly increasing trend from rounds 2 to 5 and then are take a declining trend for the rest of the tour with a few up ticks in speed from round 6 to 8 and from 11 to 13. The maximum speed for over all winners is 41.85k/h and 40.56km/h for the field, which is recorded in stage 5. 
     - Overall winners show to eclipse the fields averge pace at every mountain stage of the Tour. The largest gaps are present across the middle stages from 6 to 10, 12 to 15 and 17 to 20 with the largest difference being 2.04km/h in stage 9, 1.99km/h in stage 12, 2.13km/h in stage 13 and the largest difference in stage 20 of 2.18km/h
-  - The figure indicates that when mountain terrain type's fall on stages 6 to 10, 12 to 15 and 17 to 20,  overall winners look to attack and create greater elapsed time seperation from the field at these points. All these stage fall along the declining pattern of the overall speed trend of the mountain stages, indicating that the overall winners target harder stages to impose their presence and ability to create the largest gap between their pace and the field in order to try and and create a larger seperation with their elapsed time
+  - The figure indicates that when mountain terrain type's fall on stages 6 to 10, 12 to 15 and 17 to 20,  overall winners look to attack and create greater elapsed time seperation from the field at these points. All these stage fall along the declining pattern of the overall speed trend of the mountain stages, indicating that the overall winners target harder stages to impose their presence and ability to create the largest gap between their pace and the field in order to try and and create a larger seperation with their elapsed time.
 
 *Hilly Stages*
     - The combined pace shows similar variation for both overall winnres and field across the first three rounds. This is followed by four different periods of declining speeds trends whereby combined speed declines from stage 3 to stage 7 and then increases at stage 8 and then average speeds decline to stage 12, with another increase at 13 and decline to 15 for overall winners, from there they increase in speed, and further decline for the field followed by relatively similar variation for both speeds until stage 20.
@@ -225,7 +192,6 @@ total_riders_dnf_terrain %>%
   xlab("Stage Type") +
   ylab("Percentage") +
   theme_linedraw() 
-ggplotly()
 ```
 
 Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have failed to complete the specific stage types with the stage type on the x axis and the percentage on the y axis. The Mountain and Hilly stages show to be the hardest terrains for riders to finish. Percentage of riders who have failed to complete each stage are:
@@ -237,15 +203,9 @@ Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have
 
 Time trial's have the least percentage of failed to complete riders with .29% and Flat stages being over double that. Time trial stages are run individually and are usually shorter distances on most often on more flatter terrain these characteristics can make it safer with reduced physical risk and collision risk. This may show that time trials are vital stage to master given their low incompletion rate which could be due to their safer conditions, which could allow for skilled riders to maximise their abilities and use these stages to improve their time gap with competitors. Furthemore, given mountain stages and hilly stages show higher incompletion rates, it would indicate that tailoring training and strategy to these stages could be benefical in the outcome of a riders race as well as, given the greater historical difficulty relative to the outher stages as shown by the higher rate, these could be stages where a rider looks to target the competition by making these stages a strength in order to increase their position when other riders may struggle more. 
 
+## Are elite riders similar?
 
-
-# 2. Is there a change in biological traits of overall winners over the years?
-
-The Tour de France conists of a range of stage types across different terrains which range from flat groud, mountains and hilly. Each of these terrains may suit a certain type of body compostion given the different elements and requirements for the specific terrain such as flat terrain and time trials better suit sprinters who are more likely to have a more muscular frame to generate power and mountain stages better suited for a slimmer build given how strenuous and endurance based those stages are. Given the overall winner is required to have the lowest elapsed time, this section will be assessing how the winners physical and biological traits match up with the other competitors and stage specialists.
-
-## Do overall winners, top sprinters or climbers have similar features (e.g. body type, age)? 
-
-The top climbers, sprinters and time trialists were isolated by targetting the winners of the flat and mountain stages in the rdf_stages section, with the top 6 riders from each category being selected. However, their height and weight were not included in the original dataset and in order to compare the body types with the overall winner their dimensions were sourced online and compiled into a tibble and then row binded together.
+The following section will be analysing the different body compositions of overall winners compared with the elite stage riders, to assess if their are similarites or differences among the different elite rider styles and what stage type body type may be best suited for overall victory. The stage type body types have been broken down into climber for elite mountain stage riders, sprinter for elite flat ground stage riders and individual time trial for elite indvidual time trial riders. The elite stage riders were identified by agregating the individual stage winners and identifying the riders with most wins for each stage type. The riders were selected from where the largest gap fell to the next rider, for climbers and time trialist's this included six selection and 5 for sprinters however, for overall winners the upper bunch of multiple time winners only consisted of 3 observations so all the winners since 1988 were shown. The physiological data was not provided by the dataset being used in order to conduct the analysis each riders height and weight details were sourced from cyclingranking.com @{CycleRank} and input into tibbles and then combined for the analysis to take place. 
 
 ```{r body-types-combine-and-plot, fig.cap = "Comparison of overall winner, sprinter and climbers body types"}
 rider_body_types %>%
@@ -255,17 +215,19 @@ rider_body_types %>%
   facet_wrap(~rider_type) +
   theme_linedraw() +
   ggtitle("Comparison of body types") +
-  ylab("Height") +
-  xlab("Weight")
+  ylab("Height, m") +
+  xlab("Weight, kg") 
+ggplotly()
 ```
 
-Figure \@ref(fig:body-types-combine-and-plot) visualises the body types of climbers, time trialist, sprinters and the overall winner with weight along the x axis and height on the y axis. It is evident from the figure that elite climbers and overall winner have a relatively more similar body type and elite individual time trialist and sprinter have a more similar frame. Climbers and overall winners tend to be ligher then individual time trialist and sprinters however, all of their heights are relatively similar with climbers and overall winners ranging to lower heights. This could indicate that being built with a climbers body frame which is lighter may provide a better opportunity to be the overall winner of the tour.
+Figure \@ref(fig:body-types-combine-and-plot) visualises the body types of climbers, time trialist, sprinters and the overall winner with weight in kg along the x axis and height in metres on the y axis. The figure illustrates that elite individual time trialist's and sprinters have relatively similar body compositions with most riders falling in the upper right quadrant. Elite time trialists show most of their observations between 75kg and 76kg wwith a height between 1.83m and 1.86m, while sprinters show most of their observations between the heigh of 1.83m and 1.84m and 75 to 80g. Climbers and overall winners take a somwhat similar cone shape, with a relatively similar spread of weight however, climbers tend to be shorter then some overall winners. Overall winners mostly weighted between 65 and 75kgs with their height varying between 1.72m and 1.90
 
-## Are competitors younger/older these days?
+Figure \@ref(fig:body-types-combine-and-plot) shows that climbers have the most similar body type to over all winners which could indicate that have a lower weight could be more beneficial for general classification victory at the Tour, with height not showing to overly impact results according to this figure.
 
-Age often plays a big factor in the assessment of an athelete potential performance, with the developments in the medical, technological and scientific fields athelete's are seeming to continue to play for longer. The overall mean age was been calculated for each year starting rider from 1988 for relativity purposes given the impact of EPO from this point.
+## Which way is age going?
 
-In order to assess the age trend that may exist at the Tour de France the stage_clean data set was used which contains all rider details from each Tour.   
+Age often plays a big factor in the assessment of an athelete potential performance. With the developments in the medical, technological and scientific fields athelete's are seeming to continue to compete for longer. The following section will be analysing the age of all the competitors in the Tour de France and how it has changed over time. The aveage age for competitors was collectively calculated for each year starting from 1988. 
+
 ```{r median-mean-age, fig.cap = "The averge age of riders at each Tour de France"}
 mean_age_tdf <- stage_clean %>%
   filter(year >= "1988") %>%
@@ -286,13 +248,13 @@ mean_age_tdf %>%
   theme_linedraw() +
   ggtitle("Average rider age") +
   xlab("Year") +
-  ylab("Average") +
+  ylab("Average age") +
   scale_x_continuous(breaks = seq(1990, 2020, 5))
 ```
 
-Figure \@ref(fig:median-mean-age) visualises the average ages of contesants from 1988 to 2020 with the year on the x axis and the average age on the y axis. The figure shows the average age has been increasing over time, going from and average age of 27.1 in 1998 to a peak of almost 30 with 29.67 in 2012 and ending up with an average age of 29.22 at the 2019 Tour. The advancement of cycling technolgies and development of equipment such as lighter frames and more aerodynmaic attire @{Haake2009} in conjunction with improvements in best practice and integration of sports science, could be a reason behind riders extending their career as physical ailments that would have halted riders in the past are now being dealt with more effectively and proactively @{SmithM}.
+Figure \@ref(fig:median-mean-age) visualises the average ages of contesants from 1988 to 2020 with the year on the x axis and the average age on the y axis. The figure shows the average age has been increasing over time going from an average age of 27.1 in 1998 to a peak of 29.67 in 2012 and ending up with an average age of 29.22 at the 2019 Tour. The advancement of cycling technolgies and development of equipment such as lighter frames and more aerodynmaic attire @{Haake2009} in conjunction with improvements in best practice and integration of sports science, could be a reason behind riders extending their career as physical ailments that would have halted riders in the past are now being dealt with more effectively and proactively @{SmithM} thus allowing riders to extend their careers.
 
-## How has age impacted overall results?
+### How has age impacted overall results?
 
 ```{r age-winner, fig.cap = "Age of overall winners"}
 winners %>%
@@ -310,31 +272,13 @@ winners %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
 
-Figure \@ref(fig:age-winner) visualises the age of the overall winner since 1988 with the date on the x axis and the age on the y axis. A slight upward trend is present with quite a bit of variability in amongst the time frame which indicate that the age of winning riders is increasing however, it does not seem to be the most critical element given the distribution on both sides of the lm line. It is also worth noting that, given the EPO era that this time frame is inspecting, the increased riding/winng age could also be influenced by illicit substance use as was notoriously the case with Lance Armstrong @{WilsonJ} who won seven straight tours from 1999 aged 27 through to 2005 aged 32 as well as less well known riders such as Bjarne Liis who won 1996 aged 32 and also had admitted to doping @{FarrandS}. These substance based results among the potential others may have influenced the dataset given it is unclear what the overall age results would have been had doping not been present. 
+Figure \@ref(fig:age-winner) visualises the age of the overall winner since 1988 with the date on the x axis and the age on the y axis. A slight upward trend is present with quite a bit of variability in amongst the time frame which indicate that the age of winning riders is increasing however, it does not seem to be the most critical element given the distribution on both sides of the trend line. It is also worth noting that, given the EPO era that this time frame is inspecting, the increased riding/winng age could also be influenced by illicit substance use, as was notoriously the case with Lance Armstrong @{WilsonJ} who won seven straight tours from 1999 aged 27 through to 2005 aged 32 as well as less well known riders such as Bjarne Liis who won 1996 aged 32 and also admitted to doping @{FarrandS} as well as Miguel Indurain who won 5 tours in a row from 1991 to 1995 @{FotheringhamA}. These substance based results are the ones that are known and there could potential be others which may have influenced the dataset and skewed the results. 
 
-## Is there a difference between the ages of overall winners and stage winners?
+Although Figure \@ref(fig:age-winner) shows a slight upward trend in winning age, the three diagonal lines present are related to three winners who won consecectuvely with two of them being flagged for doping and the use of the performance enhancers is most likely the reason why they were able to win one, let alone that many in a row thus skewing the age trend upward fallaciously. Overall, this would indicate that being younger or older may not play the largest factor in the chance to claim victory at the Tour de France.  
 
-In order to assess if there was an age difference between overall winners and stage winners, the stage_clean dataset was filtered to only show first rank for each stage since 1988.
+## Is being part of team important?
 
-```{r plot-age-type-of-winner, fig.cap = "Difference in average age for overall winers and stage winners"}
-  age_stage_winner %>%
-  ggplot(aes(x = type_of_winner,
-             y = age)) +
-  geom_boxplot() +
-  theme_linedraw() +
-  ggtitle("Age of overall winner v stage winners") +
-  xlab("Winner") +
-  ylab("Age") +
-  scale_y_continuous(breaks = seq(20, 38, 2))
-```
-
-Figure \@ref(fig:overall-winner-age-stage-winner-age) presents the age distribution of winners with overall winners and stage winners across the x axis and age along the y axis. Overall winners have a higher age median at around 29 years of age as opposed to 28 years for stage winners while, stage winners display both the youngest winner at 21 and the oldest at 36.
-
-4. Is being part of team important?
-
-## Are certain team producing winners more prevalently? 
-
-All though there is an individual winner at the end of every Tour de France, it is deemed a team sport given how much each rider is aided by who they share a jersey with. Teams will look to protect their lead rider by looking to gain ideal position for their lead rider and assisting them in conserving energy through a range of different strategies @{HopkinsPhillips}. In order to assess the most prevelant teams in Tour de France, the data set was filtered to show results from 1969 which sees the re-introduction and professional sponsorship of teams @{McGann}. 
+Given the strategic nature and benefits that riders gain from their team, the following section will be analysing if being part of a particular team may make a rider more likely to win the Tour given how prevelant that team produces a winner. In order to assess the most prevelant teams in Tour de France, the data set was filtered to show results from 1969 which saw the re-introduction and professional sponsorship of teams @{McGann}. 
 
 ```{r most-prevelant-teams, fig.cap "Displays the teams with the most wins since 1969"}
 team_names_to_date %>%
@@ -353,9 +297,11 @@ team_names_to_date %>%
   scale_y_continuous(breaks = seq(0, 8, 1))
 ```
 
-Figure \@ref(fig:most-prevelant-teams) displays the most prevalent teams in Tour history since 1969 with the teams on the x axis and the number of wins on the y axis. This figure shows 5 teams which have domianted the results and collectively represented 60% of the winners since 1969. Specifically, Team Ineos who are considered the most dominant team in Tour history credit their performance to improved training habits and implementation of recovery techniques, evolving technologies and marginal gains across the board which collectievly add up to an overall better performance across the team. Furthermore, the financial backing of these larger teams attracts the top tier riders given the pay packets they are able to provide as well as being able to afford all the the state of the art practices that assist performance thus potentially improving their dominance relative to smaller teams @{LindseyJ}, which would indicate that the team a rider chooses/is chosen for is likely to have an impact on their opportunity to win.
+Figure \@ref(fig:most-prevelant-teams) displays the most prevalent teams in Tour history since 1969 with the teams on the x axis and the number of wins on the y axis. This figure shows 5 teams which have domianted the results and collectively represented 60% of the winners since 1969. Specifically, Team Ineos who are considered the most dominant team in Tour history credit their performance to improved training habits and implementation of recovery techniques, evolving technologies and marginal gains across the board which collectievly add up to an overall better performance across the team. Furthermore, the financial backing of these larger teams allwo them to attract top tier riders, coaches and staff given the pay packets they are able to provide as well as being able to afford all the the state of the art practices that assist performance thus potentially improving their dominance relative to smaller teams @{LindseyJ}. This may indicat that a rider may have a better chance of winning the Tour de France depending on the team they choose/are chosen for.
 
-## Is a certain nation producing winners/stage winners more prevalently?
+## Does it matter where you're from?
+
+Different countries have different characteristics and elements that shape atheletes in different ways, the following section will look to analyse if particular countries are producing more winners and how the country a winner is from has changed over time.
 
 ```{r winner-nationality, fig.cap = "Figure displaying a time series of the countries each winner is from"}
 winners %>%
@@ -371,7 +317,7 @@ winners %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) 
 ```
 
-Figure \@ref(fig:winner-nationality) visualises the distribution of countries each winner has been from with the year of the Tour on the x axis and the nationality on the y axis. The figure shows that Up until 1985 France and Belgium were the two most dominant countries from which winning riders were from. In 1986 the U.S. saw their first win and the most dominant nations since then have been the U.S.* Spain and Great Britain. This could be a result of globilisation of the sport and access and mobility with regards to training and travel, making it more accessible for riders, coaches and teams to train and operate in the most desired regions with the highest calibre of trainers. However, it should be noted this change comes around the time of the "doping era" which clearly has a large factor in the wins tallied by the United States.
+Figure \@ref(fig:winner-nationality) visualises the distribution of countries each winner has been from with the year of the Tour on the x axis and the nationality on the y axis. The figure shows that Up until 1985 France and Belgium were the two most dominant countries from which winning riders were from. In 1986 the U.S. saw their first win and the most dominant nations since then have been the U.S. Spain and Great Britain. This could be a result of globilisation of the sport and access and mobility with regards to training and travel, making it more accessible for riders, coaches and teams to train and operate in the most desired regions with the highest calibre of trainers. However, it should be noted this change comes around the time of the "doping era" which clearly has a large factor in the wins tallied by the United States. Given the freedom of movement and access to terrains and training being accessbile by most athletes, it would still seem a few countries dominate the winning colomn each year which could indicate where the best training partners and highest level of performance and training takes place.
 
 ```{r, eval = FALSE}
 ggplot(winners ) +
@@ -797,4 +743,4 @@ stage_finish_wide %>%
                      labels = seq(from = 1900, to = 2020, by = 10)) 
 ```
 
-
+# 
