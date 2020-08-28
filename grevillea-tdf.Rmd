@@ -147,423 +147,142 @@ stage_clean %>% write_csv(here::here("data/stage_data.csv"))
 tdf_stages %>% write_csv(here::here("data/tdf_stages.csv"))
 ```
 
-```{r structure-of-dataset}
-str(stage_clean)
-str(tdf_winners)
+ 1. How does stage speeds change for overall winners across the tour?
+
+```{r combining-stage-clean-tdf-stage-data}
+#code used to create the datasets for finding the terrains that aren't being completed as well as the overall winner
+stage_clean_stg_number <- stage_clean %>%
+  filter(year >= "1969") %>%
+  group_by(stage_results_id) %>%
+  separate(stage_results_id, c("stage", "stage_number"), "-") %>%
+  mutate(year_stage = paste0(year, "-", stage_number))
+
+tdf_stage_stg_number <- tdf_stages %>%
+  mutate(year = year(Date),
+         year_stage = paste0(year, "-", Stage)) %>%
+  filter(year >= "1969") %>%
+  select(Stage, Date, Type, year, year_stage, Distance)
+
+tdf_stage_clean <- left_join(stage_clean_stg_number, tdf_stage_stg_number, by = "year_stage") %>%
+  select(stage_number, rank, rider, elapsed, year.x, Distance, Type, Date) %>%
+  rename(year = year.x)
+
+tdf_stages_names_clean <- tdf_stage_clean %>%
+  mutate(
+    Type_terrain = case_when(
+      str_detect(Type, "mountain|Mountain|mountain(s)") ~ "Mountain",
+      str_detect(Type, "Flat|Plain") ~ "Flat",
+      str_detect(Type, "Individual time trial|Mountain time trial") ~ "Time Trial",
+      str_detect(Type, "Hilly") ~ "Hilly Stage"))
 ```
 
-```{r height-vs-weight, fig.width = 12}
-win_weight <- winners %>%
-  ggplot(aes(x = as.factor(start_date),
-             y = weight)) +
-  geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-win_weight
+```{r average-overall-winner, each = FALSE, include = FALSE}
+# Calcualting km/h speed for each stage
+tdf_stages_speed <- tdf_stages_names_clean %>%
+  filter(year >= "1988") %>%
+  mutate(hour = hour(elapsed)) %>%
+  mutate(ride_time_hour = as.numeric(elapsed, "hours"),
+         speed_kmhr = Distance/ride_time_hour)
 
-winners %>%
-  ggplot(aes(x = weight)) +
-  geom_histogram()
-```
+#separating the first and last name
+stages_speed_names <- tdf_stages_speed %>%
+  mutate(first_name = str_extract(rider, '\\w+$')) %>%
+  separate(rider, into = c("Last_name", "First_name"), sep = '\\w+$') %>%
+  mutate(Last_name = trimws(Last_name),
+         winner_name = paste(first_name, Last_name, sep = " "),
+         winner_name = as.character(winner_name)) %>%
+  select(stage_number, year, Type_terrain, ride_time_hour, speed_kmhr, winner_name, Distance, elapsed)
 
-```{r vital-team}
-team_wins <- winners %>%
-  group_by(winner_team) %>%
-  summarise(n = n()) 
-
-team_wins %>%
-  ggplot(aes(x = fct_reorder(as.factor(winner_team), n, .desc = TRUE),
-             y = n)) +
-    geom_col() +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-
-```
-
-```{r winner-nationality}
-winners_nationality <- winners %>%
-  group_by(nationality) %>%
-  summarise(n = n())
-
-winners_nationality %>%
-  ggplot(aes(x = fct_reorder(as.factor(nationality), n, .desc = FALSE),
-             y = n)) +
-  geom_col() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-```
-
-```{r distance-v-age}
-distance_winner <- winners %>%
-  ggplot(aes(x = start_date, 
-             y = distance)) +
-  geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-
-age_winner <- winners %>%
-  ggplot(aes(x = start_date,
-                 y = age)) + 
-  geom_point(point = "blue") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-
-grid.arrange(distance_winner, age_winner, win_weight, ncol = 3)
-```
-
-```{r bmi}
-winners %>%
-ggplot(aes(x = start_date, y = weight / height^2, 
-             color = edition)) +
-  geom_point(na.rm = TRUE)
-```
-
-```{r stages-led-win-age}
-stages_led_winner <- winners %>%
-  ggplot(aes(x = start_date,
-             y = stages_led,
-             color = edition)) +
-  geom_point()
-stages_led_winner 
-stage_win_winner <- winners %>%
-  ggplot(aes(x = start_date,
-             y = stage_wins,
-             color = edition)) +
-  geom_point()
-stage_win_winner
-stage_wins_age <- winners %>%
-  ggplot(aes(x = age,
-             y = stage_wins,
-             color = edition)) +
-  geom_point()
-stage_wins_age
-```
-
-
-
-## Is there a change in biological/physical traits of overall winners over the years?
-
-### Teams with the most wins
-```{r vital-team}
-team_wins <- winners %>%
-  group_by(winner_team) %>%
-  summarise(n = n()) 
-
-team_wins_total <- team_wins %>%
-  ggplot(aes(x = fct_reorder(as.factor(winner_team), n, .desc = TRUE),
-             y = n)) +
-  geom_col() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
-  theme_bw()
-team_wins_total
-
-team_wins_overtime <- winners %>%
-  ggplot(aes(x = start_date,
-             y = winner_team,
-             color = edition)) +
-  geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
-  theme_bw()
-
-
-```
-
-
-
-### BMI change in winners
-```{r bmi}
-top_teams <- winners %>%
-  filter(winner_team %in% c("Banesto",
-                            "Italy",
-                            "U.S. Postal Service",
-                            "Team Sky",
-                            "Peugeot-Wolber",
-                            "Alcyon-Dunlop",
-                            "France",
-                            "Automoto-Hutchinson",
-                            "Belgium",
-                            "La Sportive",
-                            "Molteni"))
-
-top_teams_pct_age <- pct_change_age %>%
-  filter(winner_team %in% c("Banesto",
-                            "Italy",
-                            "U.S. Postal Service",
-                            "Team Sky",
-                            "Peugeot-Wolber",
-                            "Alcyon-Dunlop",
-                            "France",
-                            "Automoto-Hutchinson",
-                            "Belgium",
-                            "La Sportive",
-                            "Molteni"))
-  
-
-
-#Looking at BMI change overtime, grabbed from previous analysis and added the teams with > 3 winners and the trend over time
-winners %>%
-ggplot(aes(x = start_date, y = weight / height^2)) +
-  geom_point(na.rm = TRUE) +
-  geom_point(data = top_teams, aes(x = start_date, 
-                                   y = weight / height^2,
-                                   color = winner_team)) +
-  geom_smooth(alpha = .1, se = FALSE)
-```
-
-#figure showing the ages that differnt teams target
-```{r age-team}
-age_team <- winners %>%
-  ggplot(aes(x = winner_team,
-              y = age)) +
-  geom_boxplot() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-age_team
-
-
-
-country_team <- winners %>%
-  ggplot(aes(x = winner_team,
-              y = nationality)) +
-  geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-country_team
-```
-
-Teams with multiple different winners
-```{r teams-different-winners}
-winners %>%
-  select(winner_name, winner_team) %>%
-  group_by(winner_name, winner_team) %>%
-  summarise(n = n()) %>%
-  arrange(winner_team)
-
-teams_unique <- unique(winners$winner_team) %>%
-  tibble() %>%
-  arrange
-```
-
-```{r most-prevelant-teams}
-#changed the team names to the most updated
-team_names_to_date <- winners %>%
-  filter(start_date >= '1969-06-28') %>%
-  select(start_date, winner_name, winner_team, height, weight, age, stage_wins, stages_led) %>%
-  mutate(winner_team = replace(winner_team, winner_team == "Automoto-Hutchinson", "Automoto"),
-         winner_team = replace(winner_team, winner_team == "Banesto", "Movistar Team"),
-         winner_team = replace(winner_team, winner_team == "Caisse d'Epargne–Illes Balears", "Movistar Team"),
-         winner_team = replace(winner_team, winner_team == "U.S. Postal Service", "Discovery Channel"),
-         winner_team = replace(winner_team, winner_team == "Faema", "Faemino–Faema"),
-         winner_team = replace(winner_team, winner_team == "Team CSC", "Team Saxo Bank"),
-         winner_team = replace(winner_team, winner_team == "Team Sky", "Team Ineos"),
-         winner_team = replace(winner_team, str_detect(winner_team, "Peugeot"), "Peugeot"),
-         winner_team = replace(winner_team, str_detect(winner_team, "Renault"), "Renault"))
-
-team_names_to_date %>%
-  select(start_date, winner_name, winner_team) %>%
-  group_by(winner_team) %>%
-  summarise(n = n()) %>%
-  arrange(desc(n)) %>%
-  filter(n >= 3) %>%
-  ggplot(aes(x = fct_reorder(winner_team, n),
-             y = n)) +
-  geom_col(stat = "identity") +
-  theme_bw()
-```
-
-
-
-```{r height-vs-weight, fig.width = 12}
-win_weight <- winners %>%
-  ggplot(aes(x = as.factor(start_date),
-             y = weight)) +
-  geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-win_weight
-
-winners %>%
-  ggplot(aes(x = weight)) +
-  geom_histogram()
-```
-
-
-
-show the percent change in age from year to year
-```{r pct-change-age-each-year}
-pct_change_age <- winners %>%
-  mutate(pct_change_age = round((((age/lag(age)) - 1)*100), 2)) %>%
-  replace_na(list(pct_change_age = 0)) 
-
-top_teams_pct_age <- pct_change_age %>%
-  filter(winner_team %in% c("Banesto",
-                            "Italy",
-                            "U.S. Postal Service",
-                            "Team Sky",
-                            "Peugeot-Wolber",
-                            "Alcyon-Dunlop",
-                            "France",
-                            "Automoto-Hutchinson",
-                            "Belgium",
-                            "La Sportive",
-                            "Molteni"))
-
-pct_change_age %>%
-  ggplot(aes(x = start_date,
-             y = pct_change_age,
-             label = winner_name)) +
-  geom_point() +
-  geom_point(data = top_teams_pct_age, aes(x = start_date, 
-                                   y = pct_change_age,
-                                   color = winner_team)) +
-  geom_line() 
-  ggplotly()
-```
-
-Age of winnner
-
-```{r age-winner}
-age_winner <- winners %>%
-  ggplot(aes(x = start_date,
-                 y = age)) + 
-  geom_point(point = "blue") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-age_winner
-```
-
-Inividual rider wins
-
-```{r individual-rider-wins}
-winning_rider <- winners %>%
+winners_name <- winners %>%
+  mutate(year = year(start_date)) %>%
+  filter(year >= 1988) %>%
+  select(winner_name) %>%
+  arrange(winner_name) %>%
   group_by(winner_name) %>%
-  summarise(wins = n()) %>%
-  arrange(desc(wins)) 
+  slice(1)
 
-most_winning_rider <- winning_rider %>%
-  ggplot(aes(x = fct_reorder(winner_name, wins, .desc = TRUE),
-             y = wins)) +
+winner_stages_combined <-  inner_join(stages_speed_names, winners_name, by = "winner_name") %>%
+  drop_na()
+```
+
+In order to assess the overall winners average stage speed the stage_clean dataset, which contained each riders elapsed timem and tdf_stages, which contained each individual stage information, was required to be combined together. This was achieved by making a new variable that contained the stage number and date which then acted as the key. To display the stage results of overall winning riders only, the names had to align for an inner join to be used however, the rider names in the stage_clean dataset provided the surname first which required a regular expression to be used to target the riders first name and generate a new variable with the appropriate order of their names. Furthermore, given the variation in each stage from year to year, the stages have been grouped by the three main types of stages. The dataset has been filtered to show results that are post the begining of the "doping era" of cycling which saw the emergence of the banned substance EPO which to this day is still are still hard to detect @{McKay2013}. 
+
+```{r plot-speeds, fig.cap = "Average stage speeds across the three main terrains for overall winners in km/h, since 1988"}
+#speeds across different stages
+winner_stages_combined %>%
+  mutate(stage_number = as.numeric(stage_number)) %>%
+  group_by(stage_number, Type_terrain) %>%
+  summarise(avg_speed = mean(speed_kmhr)) %>%
+  ggplot(aes(x = as.factor(stage_number),
+             y = avg_speed,
+             color = Type_terrain)) +
+  geom_point() +
+  theme_linedraw() +
+  ggtitle("Overall winners average stage speeds") +
+  ylab("Average Speed, km/h") +
+  xlab("Stage Number") +
+  scale_y_continuous(breaks = seq(0, 50, 5)) +
+  labs(color = "Stage Types")
+
+```
+
+Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overall winning riders sicne 1988, across all the stages and stage types with stage number on the x axis and the average speed in kilometers per hour on the y axis. It is evident that speeds on mountain stages are on average lower then hilly, flat and time trial stages with the highest speeds coming from the time trial stages. 
+
+  - Mountain stage types
+    - Mountain stages start historically have at the earliest started on day two. The overall winning riders ride across stage 2 mountain terrain at an average speed of 40.18. Over the course of the tour de france there is an evident negative trend with speeds declining over the course of the tour and ending in the 20th stage with an average speed of 33.92 km/h. There are two up ticks in the average speed evident the first between stages 6 and 8, from 35.52 km/h to 37.95, and stage 11 and stage 13, from 34.01 to 37.10. 
+  - Flat stage types
+    - Flate stage average speeds are relativly consistent with a few patches of increased speeds across the journey of the Tour de France. Starting at just over 42.03 km/hr at stage one the speeds stay relatively consistent until stage seven, from which there is slightly increasing curvature in the figure that shows speeds increased to 43.95 km/h in stage 9 and 44.17 km/h in stage 11 and following a similar "u" shaped pattern through to stage 19. The relatively large drop in average speeds for the final three rounds can be attributed to the "Champs Elysees" round which is a final celebratory round @{Mitchell M}, a few years have seen the tour have less then 21 rounds such as 2001 where there were 20.
+  - Time trials
+    - Time trial average speeds hol the highest recorded average speeds out of all the stage types. The speeds have relatively consistent fluctuation from stage to stage, outside of stage 16 and 17. Stage one registers the highest average speed across all stage types with a maximum speed of 49.53 km/h and stage 16 recoreded the minimum overall speed of 22.52 km/h. 
+  - Hilly stages
+    - Open at stage one with an average of 42.03 km/h and then fluctuate relatively constantly between its peak speed at stage two of 44.53 km/h and the minimum overall observed average speed 37.04 at stage 20. 
+    
+## Are there certain stage types/terrains that most riders fail to complete?
+
+```{r finding-pct-rider-DNF}
+#Table showing the percentage of DNF OTL NQ by terrain
+terrain_DNF_OTL_NQ <- tdf_stages_names_clean %>%
+  filter(rank %in% c("DNF", "OTL", "NQ")) %>%
+  group_by(Type_terrain) %>%
+  summarise(not_finished = n()) %>%
+  arrange(not_finished) %>%
+  mutate(not_finished = as.numeric(not_finished))
+  
+total_riders_stage <- tdf_stages_names_clean %>%
+  group_by(Type_terrain) %>%
+  summarise(total_riders = n())
+
+total_riders_dnf_terrain <- left_join(terrain_DNF_OTL_NQ, total_riders_stage, by = "Type_terrain") %>%
+  filter(Type_terrain %in% c("Time Trial", "Flat", "Mountain", "Hilly Stage"))  %>% 
+  mutate(pct_not_finish = (not_finished/total_riders)*100)
+```
+
+Under the rank variable riders who failed to complete a stage were classified with a "DNF", "OTL" or "NQ", which stand for did not finish, over the time limit and not qualified. These labels were identified and tallied up for each stage type and then divided by the total number of entrants per type since 1969 to find the percentage of riders that failed to complete each terrain type. 
+
+```{r DNF-OTL-NQ, fig.cap = "The percentage of riders that have not finished the main for stages, since 1969"}
+total_riders_dnf_terrain %>%
+  ggplot(aes(x = fct_reorder(Type_terrain, -pct_not_finish),
+             y = pct_not_finish)) +
   geom_col(stat = "identity") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-most_winning_rider
-
+  ggtitle("The percentage of riders that failed to finish") +
+  xlab("Stage Type") +
+  ylab("Percentage") +
+  theme_linedraw() 
+ggplotly()
 ```
 
-of the riders who have won 3 or more times, what are their weight, height, bmi
-```{r winning-riders-weight-height-bmi}
-physical_traits_winners <- winners %>%
-  filter(winner_name %in% c("Lance Armstrong",
-                            "Bernard Hinault",
-                            "Eddy Merckx",
-                            "Jacques Anquetil",
-                            "Miguel Induráin",
-                            "Chris Froome",
-                            "Greg LeMond",
-                            "Louison Bobet",
-                            "Philippe Thys")) %>%
-  select(winner_name, start_date, age, weight, height) %>%
-  mutate(BMI = weight / height^2) 
+Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have failed to complete the specific stage types with the stage type o the x axis and the percentage on the y axis. The most strenuous and and gruelling stages of the Tour are the Mountain and Hilly stages whicg show to be the hardest terrains for riders to finish with the highest percentage of riders failing to complete mountain stages being 2.13% and Hilly stages with 1.61%. Time trial's have the least percentage of failed to complete riders with .29% and Flat stages being over double that. Time trial stages are run individually and are usually shorter distances on most often on more flatter terrain these characteristics make it much safer, reduced physical risk with strain and collision, and relatively easier than the other three which makes sense as to why has the lowst non-completion rate while, Flat stages, despite being flat run a higher risk of collision which could explain it having a percentage almost double that of time trail incompletion rates. 
 
-physical_traits_winners %>%
-  ggplot(aes(x = as.factor(start_date),
-             y = age,
-             fill = winner_name)) +
-  geom_col(color = "black") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+# 2. Is there a change in physcial/biological traits of overall winners over the years?
 
-physical_traits_winners %>%
-  ggplot(aes(x = as.factor(start_date),
-             y = weight,
-             color = winner_name)) +
-  geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+The Tour de France conists of a range of stage types which across differnt terrains which range from flat groud, mountains and hilly. Each of this terrains may suit a certain type of body compostion given the different elements and requirements for the specific terrain such as flat terrain and time trials better suits sprinters who are more likely to have a more muscular frame to generate power and mountain stages better suiting a slimmer build given how strenuous and endurance based those stages are. Given the overall winner is required to have the lowest elapsed time, this section will be assessing how the winners physical and biological traits match up with the other competitors and stage specialists.
 
-physical_traits_winners %>%
-  ggplot(aes(x = as.factor(start_date),
-             y = BMI,
-             color = winner_name)) +
-  geom_point() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+## Do overall winners, top sprinters or climbers have similar features (e.g. body type, age)? 
 
-```
-
-Age and stage wins
-```{r age-stage-wins-over-time}
-stage_wins_age <- winners %>%
-  ggplot(aes(x = age,
-             y = stage_wins,
-             color = edition)) +
-  geom_point()
-stage_wins_age
-```
-
-Median and mean ages over the years
-```{r median-mean-age}
-median_age_tdf <- stage_clean %>%
-  select(year, rider, age) %>%
-  group_by(year, rider) %>%
-  arrange(rider) %>%
-  group_by(year, rider) %>%
-  slice(1) %>%
-  group_by(year) %>%
-  summarise(median_age = median(age, na.rm = TRUE)) %>%
-  arrange(desc(year)) %>%
-  ggplot(aes(x = year,
-             y = median_age)) +
-  geom_point() +
-  geom_smooth(alpha = .1, se = FALSE, color = "#FFBE33")
-median_age_tdf
-
-mean_age_tdf <- stage_clean %>%
-  select(year, rider, age) %>%
-  group_by(year, rider) %>%
-  arrange(rider) %>%
-  group_by(year, rider) %>%
-  slice(1) %>%
-  group_by(year) %>%
-  summarise(mean_age = floor(mean(age, na.rm = TRUE))) %>%
-  arrange(desc(year)) %>%
-  ggplot(aes(x = year,
-             y = mean_age)) +
-  geom_point() +
-  geom_smooth(alpha = .1, se = FALSE, color = "#FFBE33")
-mean_age_tdf
-  
-boxplot_age_change <- stage_clean %>%
-  select(year, rider, age) %>%
-  group_by(year, rider) %>%
-  arrange(rider) %>%
-  group_by(year, rider) %>%
-  slice(1) %>% 
-  ungroup() %>% 
-  ggplot(aes(x = as.factor(year),
-             y = age)) +
-  geom_boxplot() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-  
-  
-
-
-
-```
-
-### Is there a common nationality producing winners
-```{r winner-nationality}
-winners_nationality <- winners %>%
-  group_by(nationality) %>%
-  summarise(n = n())
-
-winners_nationality %>%
-  ggplot(aes(x = fct_reorder(as.factor(nationality), n, .desc = FALSE),
-             y = n)) +
-  geom_col() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) 
-
-winners %>%
-  ggplot(aes(x = start_date,
-             y = nationality)) +
-  geom_point()
-```
-
-
-## Do overall winners, top sprinters or climbers have similar features (e.g. body type, age)? Were they consistent over the years?
-
+The top climbers, sprinters and time trial lists were isolated by targetting the winners of the flat and mountain stages in the rdf_stages section, with the top 6 riders from each category being selected. However, their height and weight were not included in the original dataset and in order to compare the body types with the overall winner their dimensions were sourced online and compiled into a tibble and then row binded together.
 ```{r physiological-make-up-different-terrain-riders}
 tdf_stages_dope_era <- tdf_stages %>%
   filter(Date >= '1988-07-03')
-
-unique(tdf_stages_all_year$Type)
 
 top_climbers <- tdf_stages_dope_era %>%
   filter(str_detect(Type, "mountain | Mountain |Hilly")) %>%
@@ -571,7 +290,7 @@ top_climbers <- tdf_stages_dope_era %>%
   summarise(climb_wins = n()) %>%
   arrange(desc(climb_wins)) %>%
   head(n = 6)
-top_climbers  
+  
 
 climbers_body <- tibble(winner_name = c("Chris Froome", "Vincenzo Nibali", "Michael Mathews", "Rafał Majka", "Romain Bardet", "Rui Costa"),
                         weight = c(66, 65, 72, 58, 65, 68),
@@ -603,34 +322,162 @@ indiv_tt_body <- tibble(winner_name = c("Lance Armstrong", "Miguel Indurain", "F
                         weight = c(75, 76, 80, 76, 70, 75),
                         height = c(1.77, 1.86, 1.86, 1.83, 1.75, 1.85)) %>%
   mutate(rider_type = "Individual Time Trial")
-```
 
-```{r body-types-combine-and-plot}
 winners_body <- winners %>%
   filter(start_date >= '1988-07-03') %>%
   select(winner_name, weight, height) %>%
   mutate(rider_type = "Overall winner")
 
 rider_body_types <- rbind(winners_body, indiv_tt_body, sprinters_body, climbers_body)
+```
 
-rider_type_weight <- rider_body_types %>% 
-  ggplot(aes(x = rider_type,
-             y = weight)) +
-  geom_boxplot()
-
-rider_type_height <- rider_body_types %>% 
-  ggplot(aes(x = rider_type,
-             y = height)) +
-  geom_boxplot()
-  
-grid.arrange(rider_type_weight, rider_type_height, ncol =2)
-
+```{r body-types-combine-and-plot, fig.cap = "Comparison of overall winner, sprinter and climbers body types"}
 rider_body_types %>%
   ggplot(aes(x = weight,
              y = height)) +
   geom_point() +
-  facet_wrap(~rider_type)
+  facet_wrap(~rider_type) +
+  theme_linedraw() +
+  ggtitle("Comparison of body types") +
+  ylab("Height") +
+  xlab("Weight")
 ```
 
+Figure \@ref(fig:body-types-combine-and-plot) visualises the body types of climbers, time trialist, sprinters and the overall winner with weight along the x axis and height on the y axis. It is evident from the figure that elite climbers and overall winner have a relatively more similar body type and elite individual time trialist and sprinter have a more similar frame. Climbers and overall winners tend to be ligher then individual time trialist and sprinters however, all of their heights are relatively similar with climbers and overall winners ranging to lower heights. This could indicate that being built with a climbers body that is lighter may provide a better opportunity to be the overall winner of the tour.
 
+## Are competitors younger/older these days?
 
+Age often plays a big factor in the assessment of an athelete potential performance, with the developments in the medical, technological and scientific fields athelete's are seeming to continue to play for longer. The overall mean age was then calculated for each year starting from 1988 for relativity purposes given the impact of EPO from this point.
+
+In order to assess the age trend that may exist at the Tour de France the stage_clean data set was used which contains all the riders and their names from each Tour.   
+```{r median-mean-age, fig.cap = "The averge age of riders at each Tour de France"}
+mean_age_tdf <- stage_clean %>%
+  filter(year >= "1988") %>%
+  select(year, rider, age) %>%
+  group_by(year, rider) %>%
+  arrange(rider) %>%
+  group_by(year, rider) %>%
+  slice(1) %>%
+  group_by(year) %>%
+  summarise(mean_age = mean(age, na.rm = TRUE)) %>%
+  arrange(desc(year))
+
+mean_age_tdf %>%
+  ggplot(aes(x = year,
+             y = mean_age)) +
+  geom_point() +
+  geom_smooth(alpha = .1, se = FALSE, color = "#FFBE33") +
+  theme_linedraw() +
+  ggtitle("Average rider age") +
+  xlab("Year") +
+  ylab("Average") +
+  scale_x_continuous(breaks = seq(1990, 2020, 5))
+```
+
+Figure \@ref(fig:median-mean-age) visualises the averages age of age of contesants from 1988 to 2020 with the year on the x axis and the average age on the y axis. The figure shows the average age has been increasing over time, going from and average age of 27.1 in 1998 to a peak of almost 30 with 29.67 in 2012 and ending up with an average age of 29.22 at the 2019 Tour. The advancement of cycling technolgies and development of equipment such as lighter frames and more aerodynmaic attire @{Haake2009} in conjunction with improvements in best practice and integration of sports science, this could see riders extending their career as physical ailments that would have halted riders in the past are now being dealt with more effectively and proactively @{SmithM}.
+
+## How has age impacted overall results?
+
+```{r age-winner, fig.cap = "Age of overall winners"}
+winners %>%
+  filter(start_date >= "1988-07-02") %>%
+  mutate(year = year(start_date)) %>%
+  ggplot(aes(x = year,
+                 y = age)) + 
+  geom_point(point = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "#FFBE33") +
+  theme_linedraw() +
+  ggtitle("Age of overall winners") +
+  ylab("Age") +
+  xlab("Date") +
+  scale_x_continuous(breaks = seq(1988, 2019, 1)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+Figure \@ref(fig:age-winner) visualises the age of the overall winner since 1988 with the date on teh x axis and the age on the y axis. A slight upward trend is present with quite a bit of variability in amongst the time frame which indicate that the age of winning riders is increasing however, it does not seem to be the most critical element given the distribution on both sides of the lm line. It is also worth noting that, given the EPO era that this time frame is inspecting, the increased riding/winng age could also be influenced by illicit substance use as was notoriously the case with Lance Armstrong @{WilsonJ} who won seven straight tours from 1999 aged 27 through to 2005 aged 32 as well as less well known riders such as Bjarne Liis who won 1996 and also had admitted to doping @{FarrandS} these results among the potential others may have influenced the dataset given it is unclear what the overall age results would be had doping not been present. 
+
+## Is there a difference between the ages of overall winners and stage winners?
+
+In order to assess if there was an age difference between overall winners and stage winners, the stage_clean dataset was filtered to only show first rank for each stage since 1988.
+```{r overall-winner-age-stage-winner-age, fig.cap = "Difference in average age for overall winers and stage winners"}
+stage_winner_age <- stage_clean %>%
+  filter(year >= "1988",
+         rank == "1") %>%
+  select(age) %>%
+  mutate(type = "stage_winners")
+
+winners_age <- winners %>%
+  filter(start_date >= '1988-07-03') %>%
+  select(age) %>%
+  mutate(type = "Overall winner")
+
+rbind(stage_winner_age, winners_age) %>%
+  rename(type_of_winner = type) %>%
+  ggplot(aes(x = type_of_winner,
+             y = age)) +
+  geom_boxplot() +
+  theme_linedraw() +
+  ggtitle("Age of overall winner v stage winners") +
+  xlab("Winner") +
+  ylab("Age") +
+  scale_y_continuous(breaks = seq(20, 38, 2))
+```
+
+Figure \@ref(fig:overall-winner-age-stage-winner-age) presents the age distribution of winners with overall winners and stage winners acrossthe x axis and age along the y axis. Overall winners have a higher age median at around 29 years of age as opposed to 28 for stage winners while, stage winners display both the youngest winner at 21 and the oldest at 36.
+
+4. Is being part of team important?
+
+## Are certain team producing winners more prevalently? 
+
+All though there is an individual winner at the end of every Tour de France, it is deemed a team sport given how much each rider is aided by who they share a jersey with. Teams will look to protect their lead rider by looking to gain ideal position for their lead rider and assisting them in conserving energy through a range of different strategies @{HopkinsPhillips}. In order to assess the most prevelant teams in Tour de France, the data set was filtered to show results from 1969 which sees the re-introduction and professional sponsorship of teams @{McGann}. 
+
+```{r most-prevelant-teams, fig.cap "Displays the teams with the most wins since 1969"}
+#changed the team names to the most updated
+team_names_to_date <- winners %>%
+  filter(start_date >= '1969-06-28') %>%
+  select(start_date, winner_name, winner_team, height, weight, age, stage_wins, stages_led) %>%
+  mutate(winner_team = replace(winner_team, winner_team == "Automoto-Hutchinson", "Automoto"),
+         winner_team = replace(winner_team, winner_team == "Banesto", "Movistar Team"),
+         winner_team = replace(winner_team, winner_team == "Caisse d'Epargne–Illes Balears", "Movistar Team"),
+         winner_team = replace(winner_team, winner_team == "U.S. Postal Service", "Discovery Channel"),
+         winner_team = replace(winner_team, winner_team == "Faema", "Faemino–Faema"),
+         winner_team = replace(winner_team, winner_team == "Team CSC", "Team Saxo Bank"),
+         winner_team = replace(winner_team, winner_team == "Team Sky", "Team Ineos"),
+         winner_team = replace(winner_team, str_detect(winner_team, "Peugeot"), "Peugeot"),
+         winner_team = replace(winner_team, str_detect(winner_team, "Renault"), "Renault"))
+
+team_names_to_date %>%
+  select(start_date, winner_name, winner_team) %>%
+  group_by(winner_team) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  filter(n >= 3) %>%
+  ggplot(aes(x = fct_reorder(winner_team, n),
+             y = n)) +
+  geom_col(stat = "identity") +
+  theme_bw() +
+  ggtitle("Teams with the most wins") +
+  xlab("Team Name") +
+  ylab("Number of wins") +
+  scale_y_continuous(breaks = seq(0, 8, 1))
+```
+
+Figure \@ref(fig:most-prevelant-teams) displays the most prevalent teams in Tour history since 1969 with the teams on the x axis and the number of wins on the y axis. This figure shows 5 teams which have domianted the results and collectively represented 60% of the winners since 1969. Specificall, Team Ineos who are considered the most dominant team in Tour history credit their performance to improved training habits/implementation of recovery techniques, evolving technologies and marginal gains across the board which collectievly add up to an overall better performance across the team. Furthermore, the financial backing of these larger teams attracts the top tier riders given the pay packets they are able to provide as well as being able to afford all the the state of the art practices that assist thus potentially improving their dominance relative to smaller teams.  [https://www.bicycling.com/racing/a28637007/ineos-tour-de-france/] Which would indicate that the team a rider chooses/is chosen for is likely to have an impact on their opportunity to win.
+
+## Is a certain nation producing winners/stage winners more prevalently?
+
+```{r winner-nationality, fig.cap = "Figure displaying a time series of the countries each winner is from"}
+winners %>%
+  mutate(year = year(start_date)) %>%
+  ggplot(aes(x = year,
+             y = nationality)) +
+  geom_point() +
+  theme_linedraw() +
+  ggtitle("Nationality of overall winner") +
+  xlab("Year") + 
+  ylab("Nationality") +
+  scale_x_continuous(breaks = seq(1900, 2020, 5)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) 
+```
+
+Figure \@ref(fig:winner-nationality) visualises the distribution of countries each winner has been from with the year of the Tour on the x axis and the nationality on the y axis. The figure shows that Up until 1985 France and Blgium were the two most dominant countries from which winning riders were from. In 1986 the U.S. saw their first win and the most dominant nations since then are the U.S.* Spain and Great Britain. This could be a result of globilisation of the sport and access and mobility with regards to training and travel, making it more accessible for riders, coaches and teams to train and operate in the most desired regions with the highest calire of trainers. However, it should be noted this change comes around the time of the "doping era" which clearly has a large factor in the wins tallied by the United States.
