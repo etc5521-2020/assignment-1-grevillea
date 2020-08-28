@@ -298,6 +298,67 @@ Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have
 
 # 2. Is there a change in biological traits of overall winners over the years?
 
+Doverall winners, top sprinters or climbers have similar features (e.g. body type, age)? 
+
+```{r physiological-make-up-different-terrain-riders}
+tdf_stages_dope_era <- tdf_stages %>%
+  filter(Date >= '1988-07-03')
+
+top_climbers <- tdf_stages_dope_era %>%
+  filter(str_detect(Type, "mountain | Mountain |Hilly")) %>%
+  group_by(Winner) %>%
+  summarise(climb_wins = n()) %>%
+  arrange(desc(climb_wins)) %>%
+  head(n = 6)
+  
+
+climbers_body <- tibble(winner_name = c("Chris Froome", "Vincenzo Nibali", "Michael Mathews", "Rafał Majka", "Romain Bardet", "Rui Costa"),
+                        weight = c(66, 65, 72, 58, 65, 68),
+                        height = c(1.86, 1.80, 1.78, 1.73, 1.84, 1.83)) %>%
+  mutate(rider_type = "Climber")
+
+top_sprinter <- tdf_stages_dope_era %>%
+  filter(str_detect(Type, "Flat | Plain | Intermediate")) %>%
+  group_by(Winner) %>%
+  summarise(sprint_wins = n()) %>%
+  arrange(desc(sprint_wins)) %>%
+  head(n = 5)
+
+sprinters_body <- tibble(winner_name = c("Mark Cavendish", "Marcel Kittel", "André Greipel", "Peter Sagan", "Thor Hushvod"),
+                          weight = c(70, 82, 75, 78, 79),
+                          height = c(1.75, 1.88, 1.84, 1.84, 1.83)) %>%
+  mutate(rider_type = "Sprinter")
+
+
+
+individual_tt <- tdf_stages_dope_era %>%
+  filter(Type == "Individual time trial") %>%
+  group_by(Winner) %>%
+  summarise(individual_tt_wins = n()) %>%
+  arrange(desc(individual_tt_wins)) %>%
+  head(n = 6)
+
+indiv_tt_body <- tibble(winner_name = c("Lance Armstrong", "Miguel Indurain", "Fabian Cancellara", "Jan Ullrich", "Chris Boardman", "Tony Martin"),
+                        weight = c(75, 76, 80, 76, 70, 75),
+                        height = c(1.77, 1.86, 1.86, 1.83, 1.75, 1.85)) %>%
+  mutate(rider_type = "Individual Time Trial")
+```
+
+```{r body-types-combine-and-plot}
+winners_body <- winners %>%
+  filter(start_date >= '1988-07-03') %>%
+  select(winner_name, weight, height) %>%
+  mutate(rider_type = "Overall winner")
+
+rider_body_types <- rbind(winners_body, indiv_tt_body, sprinters_body, climbers_body)
+
+rider_body_types %>%
+  ggplot(aes(x = weight,
+             y = height)) +
+  geom_point() +
+  facet_wrap(~rider_type)
+```
+
 ## Are competitors younger/older these days?
 
 Age often plays a big factor in the assessment of an athelete potential performance, with the developments in the medical, technological and scientific fields athelete's are seeming to continue to play for longer. The overall mean age was then calculated for each year starting from 1988 for relativity purposes given the impact of EPO from this point.
