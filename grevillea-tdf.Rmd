@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.align 
 
 # load libraries
 library(tidyverse)
+library(janitor)
 library(readr)
 library(kableExtra)
 library(bookdown)
@@ -148,6 +149,8 @@ stage_clean %>%
   write_csv(here::here("data/stage_data.csv"))
 
 tdf_stages %>%
-  write_csv(here::here("data/tdf_stages.csv"))
+  # Replace capitalised words with lower-case letters
+  clean_names %>%
+  write_csv(here::here("data/tdf_stages.csv")) 
 ```
 

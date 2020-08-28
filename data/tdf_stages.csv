@@ -1,4 +1,4 @@
-Stage,Date,Distance,Origin,Destination,Type,Winner,Winner_Country
+stage,date,distance,origin,destination,type,winner,winner_country
 1,2017-07-01,14,Düsseldorf,Düsseldorf,Individual time trial,Geraint Thomas,GBR
 2,2017-07-02,203.5,Düsseldorf,Liège,Flat stage,Marcel Kittel,GER
 3,2017-07-03,212.5,Verviers,Longwy,Medium mountain stage,Peter Sagan,SVK
@@ -2235,48 +2235,6 @@ P,1969-06-28,10,Roubaix,Roubaix,Individual time trial,Rudi Altig,GER
 4,1903-07-12,268,Toulouse,Bordeaux,Plain stage,Charles Laeser,SUI
 5,1903-07-13,425,Bordeaux,Nantes,Plain stage,Maurice Garin,FRA
 6,1903-07-18,471,Nantes,Paris,Plain stage,Maurice Garin,FRA
-1,2018-07-07,201,Noirmoutier-en-l'Île,Fontenay-le-Comte,Flat stage,Fernando Gaviria ,COL
-2,2018-07-08,182.5,Mouilleron-Saint-Germain,La Roche-sur-Yon,Flat stage,Peter Sagan ,SVK
-3,2018-07-09,35.5,Cholet,Cholet,Team time trial,BMC Racing Team,NA
-4,2018-07-10,195,La Baule,Sarzeau,Flat stage,Fernando Gaviria ,COL
-5,2018-07-11,204.5,Lorient,Quimper,Hilly stage,Peter Sagan ,SVK
-6,2018-07-12,181,Brest,Mûr-de-Bretagne,Hilly stage,Dan Martin ,IRL
-7,2018-07-13,231,Fougères,Chartres,Flat stage,Dylan Groenewegen ,NED
-8,2018-07-14,181,Dreux,Amiens,Flat stage,Dylan Groenewegen ,NED
-9,2018-07-15,156.5,Arras,Roubaix,Hilly stage,John Degenkolb ,GER
-10,2018-07-17,158.5,Annecy,Le Grand-Bornand,Mountain stage,Julian Alaphilippe ,FRA
-11,2018-07-18,108.5,Albertville,La Rosière,Mountain stage,Geraint Thomas ,GBR
-12,2018-07-19,175.5,Bourg-Saint-Maurice,Alpe d'Huez,Mountain stage,Geraint Thomas ,GBR
-13,2018-07-20,169.5,Le Bourg-d'Oisans,Valence,Flat stage,Peter Sagan ,SVK
-14,2018-07-21,188,Saint-Paul-Trois-Châteaux,Mende,Hilly stage,Omar Fraile ,ESP
-15,2018-07-22,181.5,Millau,Carcassonne,Hilly stage,Magnus Cort Nielsen ,DEN
-16,2018-07-24,218,Carcassonne,Bagnères-de-Luchon,Mountain stage,Julian Alaphilippe ,FRA
-17,2018-07-25,65,Bagnères-de-Luchon,Saint-Lary-Soulan (Col de Portet),Mountain stage,Nairo Quintana ,COL
-18,2018-07-26,171,Trie-sur-Baïse,Pau,Flat,Arnaud Démare ,FRA
-19,2018-07-27,200.5,Lourdes,Laruns,Mountain stage,Primož Roglič ,SLO
-20,2018-07-28,31,Saint-Pée-sur-Nivelle,Espelette,Individual time trial,Tom Dumoulin ,NED
-21,2018-07-29,116,Houilles,Paris (Champs-Élysées),Flat stage,Alexander Kristoff ,NOR
-1,2019-07-06,194.5,Brussels (Belgium),Brussels (Belgium) via Charleroi (Belgium),Flat stage,Mike Teunissen ,NED
-2,2019-07-07,27.6,Brussels-Royal Palace (Belgium),Brussels-Atomium (Belgium),Team time trial,Team Jumbo–Visma ,NED
-3,2019-07-08,215,Binche (Belgium),Épernay,Hilly stage,Julian Alaphilippe ,FRA
-4,2019-07-09,213.5,Reims,Nancy,Flat stage,Elia Viviani ,ITA
-5,2019-07-10,175.5,Saint-Dié-des-Vosges,Colmar,Hilly stage,Peter Sagan ,SVK
-6,2019-07-11,160.5,Mulhouse,La Planche des Belles Filles,Mountain stage,Dylan Teuns ,BEL
-7,2019-07-12,230,Belfort,Chalon-sur-Saône,Flat stage,Dylan Groenewegen ,NED
-8,2019-07-13,200,Mâcon,Saint-Étienne,Hilly stage,Thomas De Gendt ,BEL
-9,2019-07-14,170.5,Saint-Étienne,Brioude,Hilly stage,Daryl Impey ,RSA
-10,2019-07-15,217.5,Saint-Flour,Albi,Flat stage,Wout van Aert ,BEL
-11,2019-07-17,167,Albi,Toulouse,Flat stage,Caleb Ewan ,AUS
-12,2019-07-18,209.5,Toulouse,Bagnères-de-Bigorre,Mountain stage,Simon Yates ,GBR
-13,2019-07-19,27.2,Pau,Pau,Individual time trial,Julian Alaphilippe ,FRA
-14,2019-07-20,111,Tarbes,Col du Tourmalet,Mountain stage,Thibaut Pinot ,FRA
-15,2019-07-21,185,Limoux,Foix Prat d'Albis,Mountain stage,Simon Yates ,GBR
-16,2019-07-23,177,Nîmes,Nîmes,Flat stage,Caleb Ewan ,AUS
-17,2019-07-24,200,Pont du Gard,Gap,Hilly stage,Matteo Trentin ,ITA
-18,2019-07-25,208,Embrun,Valloire,Mountain stage,Nairo Quintana ,COL
-19,2019-07-26,89,Saint-Jean-de-Maurienne,Col de l'Iseran[a],Mountain stage,no winner[a],NA
-20,2019-07-27,59.5,Albertville,Val Thorens,Mountain stage,Vincenzo Nibali ,ITA
-21,2019-07-28,128,Rambouillet,Paris (Champs-Élysées),Flat stage,Caleb Ewan ,AUS
 1,2018-07-07,201,Noirmoutier-en-l'Île,Fontenay-le-Comte,Flat stage,Fernando Gaviria ,COL
 2,2018-07-08,182.5,Mouilleron-Saint-Germain,La Roche-sur-Yon,Flat stage,Peter Sagan ,SVK
 3,2018-07-09,35.5,Cholet,Cholet,Team time trial,BMC Racing Team,NA

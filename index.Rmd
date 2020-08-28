@@ -40,8 +40,6 @@ What are the most important characteristics and attributes to win the tour and h
 
 **Intro:**
 - History of Tour De France
-  - Where is it held?
-  - How has it evolved?
 - What is it? How to win?
   - Special jerseys
   - Different stages
@@ -53,32 +51,20 @@ Tour De France ("Le Tour") is an annual men's bicycle race that in modern days e
 
 ## Stages
 
-Split into 21 stages:
-- 9 flat stages
-- 3 hilly stages
-- 8 mountain stages (incl. 5 summit finishes)
-- 1 individual time trials (usually on the penultimate)
-- 2 rest days
+Split into various stages:
+- flat stages
+- hilly stages
+- mountain stages (incl. 5 summit finishes)
+- individual ad team time trials
+- rest days
 
-At present, one stage is performed every day, covering approximately 225km& about 5.5hours to complete. Each stage has a winner, & the rider that completes the most stages in the shortest amount of time wins the overall title.
+One stage is performed every day, covering approximately 225km& about 5.5hours to complete. Each stage has a winner, & the rider that completes the most stages in the shortest amount of time wins the overall title. 
 
 Permitted disqualification time in which riders must finish (Winners time + pre-determined % of that time)
 
-*Time trials:*  
-- Usually 2-3 time trials
-- 1st stage in modern tours is usually a prologue (or short trial), deciding who wears the yellow jersey on opening day.
-
-## Teams
-
-You may ask, why have teams when there is only one individual champion for the General Classification?? 'Domestiques', a term frequently used to describe riders who support a team leader to win stages and accumulate points to hopefully win the tour. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy; This is known as 'Lead-out Trains'.
-
-For the bulk of the race, cyclists don't usually ride as fast as they can throughout the race, but cycle in a main group known as a peloton. 
-
-## What do jerseys represent?
+## The Jersey Hierarchy
 
 The same coloured jerseys are worn within teams, current road champions get to wear their team jerseys with their country's colour& reigning world champions wears their team jerseys with stripes.
-
-## The Jersey Hierarchy
 
 **Yellow: General classification - Race leader**  
 - All stages are timed, and the rider with the lowest aggregate time gains the privilege to wear this yellow jersey
@@ -97,6 +83,12 @@ The same coloured jerseys are worn within teams, current road champions get to w
 
 **White: Young rider classification - Most impressive rider, under 26 years old**  
 - Determined the same as general classification, where it is restricted to riders that are under 26 years old
+
+## Teams
+
+You may ask, why have teams when there is only one individual champion for the General Classification? '*Domestiques*' (french in servant), a term frequently used to describe riders who support a team leader to win stages and accumulate points to hopefully win the tour. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy; This is known as 'Lead-out Trains'.
+
+For the bulk of the race, cyclists don't usually ride as fast as they can throughout the race, but cycle in a main group known as a peloton. 
 
 
 # Data description
@@ -120,13 +112,14 @@ tdf_winners <- read.csv(here::here("data/tdf_winners.csv"))
 tdf_stages <- read.csv(here::here("data/tdf_stages.csv"))
 ```
 
-This data set originates from the `tdf` R package, which is essentially a container for the  `editions` data frame encompassing the historic data about Tour de France riders, stages and winners. This data set is hosted on this [github link](https://github.com/alastairrushworth/tdf) and is readily available for use.
+The data used for this analysis originates from the `tdf` R package, which is essentially a container for the  `editions` data frame. This data set is hosted on [GitHub](https://github.com/alastairrushworth/tdf) and is readily available. The data set encompasses the historic data about Tour de France riders, stages and winners.
 
-`tdf_winners` corresponds to the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019).
+`tdf_winners` corresponds to a condensed version of the `editions` data frame; Each row corresponds to an edition of the Tour De France event for a given year, spanning all the way to the first edition in 1903 to the latest tournament as of today (2019). Some of the variables include:
 
-```{r explore-tdf-winners}
+```{r}
 glimpse(tdf_winners)
 ```
+
 - `tdf_winners` variables contains the overall winner's biographical data and information about the race for a given edition, which comprises of:  
 - `start date` start of the Tour De France edition
 - `winner name` name of the overall winner (*i.e. winner of the General Classification)
@@ -140,24 +133,42 @@ glimpse(tdf_winners)
 - `full_name` overall winner's full name
 - `nationality` overall winner's nationality
 
-*Do we have to name all of them?* 
 
-```{r}
-glimpse(stage_data)
-```
+The `editions` dataset contains variable `stage results`, which represents a list of lists where each element contains a list of stage results pertaining to a particular year or edition of Tour De France. When we unnest, or flatten it back to its regular columns, we get `tdf_stages` and `stage_data` dataset.
 
-```{r}
+
+```{r explore-tdf-stages, include = FALSE}
 glimpse(tdf_stages)
 ```
 
-- Condensed version of `stage_data` tibble, comprising of only the winners of all stages.
-Include data...
+The `tdf_stages` data set depicts the details of the stage winners at each stage of an edition, with stage type/terrain, the distance between the start location and end location of the stage. Some of the variables includes:
+- `stage`: Stage number of the edition
+- `date`: Date of stage
+- `origin` and `destination`: Start and end location of the stage
+- `distance`: Distance (in KM) for the stage
+- `type`: type of stage
+- `winner`: Name of the stage winner
 
-Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the data. However, we discovered errors in the `time` and `elapsed` variables in the `stage_data` where the period objects were incorrect. 
 
-Thus, for this particular data set, we opted to use the cleaning script found in the same github link; We made some minor adjustments such as changing the object names to reproduce the same data set that was intended. 
 
-Furthermore, `tdf_stages` data set only provided till the 2017 edition where the actual dataset covered all the way to 2019.
+```{r explore-stage-data, include = FALSE}
+glimpse(stage_data)
+```
+
+The `stage_data` is expands on the `tdf_stages` dataset, including results of all riders and their ranks at every stage where each row corresponds to the result of a particular rider such as points accumulated for the stage. This data set includes variables such as:
+
+`edition`: Race edition pertaining to the year
+`rider`: The name of the rider/participant
+`age`: Age of rider at that point in time
+`rank`: Rank of the rider for the stage
+`elapsed`: Time elapsed for the stage
+
+
+## Problems encountered 
+
+Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the Tour De France data set. However, we discovered errors in the `time` and `elapsed` variables in the `stage_data` where the period objects were incorrect. Thus, we opted to use the cleaning script found in the same github link and made some adjustments such as changing the object names to reproduce the same data set that was intended. 
+
+Furthermore, `tdf_stages` data set only provided data till the 2017 edition while the actual dataset covered all the way to 2019. Accordingly, we web scraped the data from these the Wikipedia (for [2018](https://en.wikipedia.org/wiki/2018_Tour_de_France) and [2019](https://en.wikipedia.org/wiki/2019_Tour_de_France)) to obtain the stages data set for 2018 and 2019. These Wiki pages corresponds to how the actual data set obtained its data, making it straightforward to structure the data to a tidy format analogous with the `tdf_stages` data set, assuring smooth binding of the data.
 
 
 # Analysis and findings
@@ -166,11 +177,6 @@ Furthermore, `tdf_stages` data set only provided till the 2017 edition where the
 
 # References
 
-
-
-
-
-# Exploring the data
 
 ## How have races& riders evolved over time?
 
@@ -315,7 +321,7 @@ ggplot(tdf_winners) +
              aes(x = year,
                  y = stages_led,
                  ),
-             colour = "#ff3333") +
+             colour = "#bc3a3a") +
   # Add text on years 1928 and 1934
   geom_text(data =  subset(tdf_winners, year %in% 1928), 
             aes(x = year * 0.9977, y = stages_led * 1.003, 
@@ -457,17 +463,16 @@ stage_winners_2000s %>%
         plot.title = element_text(face = "bold", size = 14))
 ```
 
-Figure \@ref(fig:ranks-by-stage-type) Overall winners are commonly versatile riders who performs relatively well at each stage type. This is also manifest in table \@ref(tab:ranks-by-stage-tbl), which establishes that overall winners are ranked 5 and below in approximately 7 in 10 races for all types of stage. This plot also reinforces the idea that overall winners does not always perform great in all stages, as seen with the variability of ranks at each type of stage.
+Figure \@ref(fig:ranks-by-stage-type) illustrates that overall winners are versatile riders who performs relatively well at each stage type. This is also manifest in table \@ref(tab:ranks-by-stage-tbl), which establishes that overall winners are ranked 5 and below in approximately 7 in 10 races for all types of stage. This plot also reinforces the idea that overall winners does not always perform great in all stages, as seen with the variability of ranks at each type of stage.
 
-It is almost always that the overall winners are formidable at climbing mountain Considering the steep climbs, thin air at high altitudes and narrow descents in mountain stages, these stages have the largest potential for time gaps and for riders to make the grade and set them apart from other riders. Table \@ref(tab:ranks-by-stage-tbl) demonstrates that overall winners thrive in mountain stages, where they are ranked 5 or less in at least three out of four mountain stages. Although this may be true, figure \@ref(fig:ranks-by-stage-type) illustrates that one can also expect large variability in rankings of overall winners when it comes to these gruelling mountain stages.
+It is almost always that the overall winners are formidable at climbing mountain. Considering the steep climbs, thin air at high altitudes and narrow descents in mountain stages, these stages have the largest potential for time gaps and for riders to make the grade and set them apart from other riders. Table \@ref(tab:ranks-by-stage-tbl) demonstrates that overall winners thrive in mountain stages, where they are ranked 5 or less in at least three out of four mountain stages. Although this may be true, Figure \@ref(fig:ranks-by-stage-type) also show that one can also expect large variability in rankings of overall winners when it comes to these gruelling mountain stages.
 
 Amongst the different stage types, Figure \@ref(fig:ranks-by-stage-type) shows that the rankings of overall winners had the least median rank and smallest variations when it came to time trials. This implies two things; First, overall winners must be physically skilled to win individual time trials. Individual time trials tests their endurance and solo strengths by forcing them to negotiate the course comprising of curved roads, small-scale slopes and multiple terrain types while keeping a steady and appropriate pace. Next, it conveys that they customarily have great teams as it requires precise strategy and cooperation amongst the team. For instance, team's *domestiques* (French for servants) work in unison to allow for drafting (shield from wind resistance by riders in front) to facilitate a smoother ride for the team leader and ensure he arrives at crucial moments of the race with little energy expended. This is especially complex as teams must find an ideal pace despite their diverse body types and skills. 
 
 With flat stages accounting for nearly one third (`r rank_summ$total_stage_type[1]/nrow(stage_winners_2000s)`) of all stages in a given edition, it is essential for overall winners to be skilled at sprints. Although *Q2* highlighted that flat stages are typically dominated by sprinters, who are usually a muscular rider with a larger body type,  overall winners have proven to be they are successful in these stages too. They are ranked at a median rank of approximately 15 (Figure \@ref(fig:ranks-by-stage-type)) and have attained rank 5 and below in about 73% of the time for all flat stages in the last two decades.
 
 
-## Did not work
-
+## Did not work 
 
 
 ```{r stage-data-cumsum, eval = FALSE}
