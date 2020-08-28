@@ -160,7 +160,6 @@ Furthermore, `tdf_stages` data set only provided data till the 2017 edition whil
 
 # References
 
-
 ## How have races& riders evolved over time?
 
 ```{r, eval = FALSE}
@@ -587,4 +586,5 @@ stage_finish_wide %>%
   scale_x_continuous(breaks =seq(from = 1900, to = 2020, by = 10),
                      labels = seq(from = 1900, to = 2020, by = 10)) 
 ```
+
 
