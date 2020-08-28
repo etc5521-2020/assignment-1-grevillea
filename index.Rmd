@@ -162,45 +162,59 @@ Furthermore, `tdf_stages` data set only provided data till the 2017 edition whil
 
 # References
 
-## How have races& riders evolved over time?
+## Time and place for speed
 
- 1. How do stage speeds change for overall winners across the tour?
+The following section will be analysing how the overall winners speed and how it changes from stage to stage relative to the rest of the field in order to understand when winning riders believe its most vital to increase their pace over their competitors. In order to conduct this analysis the the rider average speeds in km/h were calculated for each terrain type across every stage. The calculation was done by dividing the elapsed time over the total distance variables from the _stage_clean_ and _tdf_stages_ dataset's. The following analysis will be focusing on the Tour's since 1988 as this is known as the begining of the EPO era for relativitey, given the extreme performance enhancing nature of doping that became prominent from this point onwatds due to the difficulty surrounding its detection @{McKay2013}.
 
-In order to assess the overall winners average stage speed the stage_clean dataset, which contained each riders elapsed timem and tdf_stages, which contained each individual stage information, was required to be combined together. This was achieved by making a new variable that contained the stage number and date which then acted as the key. To display the stage results of overall winning riders only, the names had to align for an inner join to be used however, the rider names in the stage_clean dataset provided the surname first which required a regular expression to be used to target the riders first name and generate a new variable with the appropriate order of their names. Furthermore, given the variation in each stage from year to year, the stages have been grouped by the three main types of stages. The dataset has been filtered to show results that are post the begining of the "doping era" of cycling which saw the emergence of the banned substance EPO which to this day is still are still hard to detect @{McKay2013}. 
-
-```{r plot-speeds, fig.cap = "Average stage speeds across the three main terrains for overall winners in km/h, since 1988"}
+```{r plot-speeds, fig.width = 14, fig.cap = "Average stage speeds across the three main terrains for overall winners in km/h, since 1988"}
 #speeds across different stages
 winner_stages_combined %>%
-  mutate(stage_number = as.numeric(stage_number)) %>%
-  group_by(stage_number, Type_terrain) %>%
-  summarise(avg_speed = mean(speed_kmhr)) %>%
   ggplot(aes(x = as.factor(stage_number),
              y = avg_speed,
              color = Type_terrain)) +
   geom_point() +
+  geom_point(data = rest_field_stages_combined,
+             aes(x = as_factor(stage_number),
+                 y = avg_speed,
+                 color = the_field,
+                 alpha = .4)) +
   theme_linedraw() +
   ggtitle("Overall winners average stage speeds") +
   ylab("Average Speed, km/h") +
   xlab("Stage Number") +
   scale_y_continuous(breaks = seq(0, 50, 5)) +
-  labs(color = "Stage Types")
-
+  labs(color = "Stage Types") +
+  facet_wrap(~Type_terrain)
+ggplotly()
 ```
 
-Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overall winning riders since 1988, across all the stages and stage types with stage number on the x axis and the average speed in kilometers per hour on the y axis. It is evident that speeds on mountain stages are on average lower then hilly, flat and time trial stages with the highest speeds coming from the time trial stages. 
+Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overall winning riders since 1988, across all the stages and stage types with stage number on the x axis and the average speed in kilometers per hour on the y axis. _Flat_, _Hilly Stage_, _Mountain_ and _Time Trial_ represent the speeds of the overall winners for each of those terrains and _The Field_ represents the rest of the competitors. From the figure it is evident:
 
-  - Mountain stage types
-    - Mountain stages start historically have at the earliest started on day two. The overall winning riders ride across stage 2 mountain terrain at an average speed of 40.18. Over the course of the tour de france there is an evident negative trend with speeds declining over the course of the tour and ending in the 20th stage with an average speed of 33.92 km/h. There are two up ticks in the average speed evident the first between stages 6 and 8, from 35.52 km/h to 37.95, and stage 11 and stage 13, from 34.01 to 37.10. 
-  - Flat stage types
-    - Flate stage average speeds are relativly consistent with a few patches of increased speeds across the journey of the Tour de France. Starting at just over 42.03 km/hr at stage one the speeds stay relatively consistent until stage seven, from which there is slightly increasing curvature in the figure that shows speeds increased to 43.95 km/h in stage 9 and 44.17 km/h in stage 11 and following a similar "u" shaped pattern through to stage 19. The relatively large drop in average speeds for the final three rounds can be attributed to the "Champs Elysees" round which is a final celebratory round @{Mitchell M}, a few years have seen the tour have less then 21 rounds such as 2001 where there were 20.
-  - Time trials
-    - Time trial average speeds hol the highest recorded average speeds out of all the stage types. The speeds have relatively consistent fluctuation from stage to stage, outside of stage 16 and 17. Stage one registers the highest average speed across all stage types with a maximum speed of 49.53 km/h and stage 16 recoreded the minimum overall speed of 22.52 km/h. 
-  - Hilly stages
-    - Open at stage one with an average of 42.03 km/h and then fluctuate relatively constantly between its peak speed at stage two of 44.53 km/h and the minimum overall observed average speed 37.04 at stage 20.
+*Flat Stages*
+    - The overall average pace from the winners and the field stays relatively consistent for the duration of the course, with speeds increasing slightly towards the middle and end of the Tour, until the legacy "ChampsEssay" rounds theom 20-22. 
+    - Overall winners average speed are relatively equal with the average speed of the field for the first 8 stages, with overall winners being 0.3km/hr faster over the first two and 0.34km/h faster in stage 9, which registers the maximum speed for the tour of 43.95km/h for overall winners and 43.56km/h for the fied. 
+    - The fild eclipsing the overall winners in stage 10 by 0.43km/h. 
+    - The combined speeds show a decreasing trend from stage 12 to stage 14, with overall winners having their largest speed difference  of 0.96km/h, 0.63km/h and 0.96km/h across those three stages. The field produces marginally higher speeds then the overall winners across if 15 to 17. The overall winners show at stage 18 they make the largest difference in average pace with a speed of 43.64km/h which is 1.3km/h greater then the fields average speed of 42.34km/h for the stage.
+  - The figure would indicate that across flat stages the field and winners are relatively equal however, when the flat types fall on stage 12, 13, 14 and 19 overall winners seem to look to create the largest gap between them and the field and reduce their elapsed time along the flat terrain.
 
-## Are there certain stage types/terrains that most riders fail to complete?
+*Mountain stage types*
+    - The combined average speed for both overall winners and the field have a slightly increasing trend from rounds 2 to 5 and then are take a declining trend for the rest of the tour with a few up ticks in speed from round 6 to 8 and from 11 to 13. The maximum speed for over all winners is 41.85k/h and 40.56km/h for the field, which is recorded in stage 5. 
+    - Overall winners show to eclipse the fields averge pace at every mountain stage of the Tour. The largest gaps are present across the middle stages from 6 to 10, 12 to 15 and 17 to 20 with the largest difference being 2.04km/h in stage 9, 1.99km/h in stage 12, 2.13km/h in stage 13 and the largest difference in stage 20 of 2.18km/h
+  - The figure indicates that when mountain terrain type's fall on stages 6 to 10, 12 to 15 and 17 to 20,  overall winners look to attack and create greater elapsed time seperation from the field at these points. All these stage fall along the declining pattern of the overall speed trend of the mountain stages, indicating that the overall winners target harder stages to impose their presence and ability to create the largest gap between their pace and the field in order to try and and create a larger seperation with their elapsed time
 
-Under the rank variable riders who failed to complete a stage were classified with a "DNF", "OTL" or "NQ", which stand for did not finish, over the time limit and not qualified. These labels were identified and tallied up for each stage type and then divided by the total number of entrants per type since 1969 to find the percentage of riders that failed to complete each terrain type. 
+*Hilly Stages*
+    - The combined pace shows similar variation for both overall winnres and field across the first three rounds. This is followed by four different periods of declining speeds trends whereby combined speed declines from stage 3 to stage 7 and then increases at stage 8 and then average speeds decline to stage 12, with another increase at 13 and decline to 15 for overall winners, from there they increase in speed, and further decline for the field followed by relatively similar variation for both speeds until stage 20.
+    - Overall winners show to have greater average speed then the field the whole way through the Tour except for stages 10, 17 and 20 where the overall winners speed is marginally eclipsed by the field. The greatest average speed difference come when hilly states fall on 8, 12, 13, 16 and 19 which are 2.36km/h, 1.80km/h, 2.06km/h, 2.33km/h and 2.07km/h, which indicates overall winning riders look to maximise their time difference across these stages when they are hilly types. 
+  
+*Time Trial*
+    - Time trial combined average speed follows a relatively declining trend through to round 16 where there is a the lowest average speed since 1988 recorded of 22.53km/hr for overall winners and 20.31km/hr for the field. Speeds increase through to stage 18 and level out there.
+    - The time trial average speeds show that for time trials, the overall winners have the largest speed gap between them and the field, for all stage types. Overall winners hold larger gap for the longest stretch of stages relative to the the differences present in the other three stage types. 
+    - This would indicate that overall winners are far more elite then the field at time trials and look likley to minimise their race time along them no matter what stage of the tour the time trial stage falls on. The maximum speed of across the time trials for the overall winners and the field cames when the time trial falls on stage one with speeds of 49,53km/h and 48.13km/h respectively. 
+
+## Where does the greatest difficulty lie?
+
+The following section will be analysing the incompletion rate across the different types of stages. Each stage carries with it it's own unique difficulties and understanding where riders have historically shown the greatest weakness could be benefical at understanding stages that should be targetted and where energy needs to be conserved for. In order to conduct this analysis the total number riders over who failed to complete each stage was divided by the total number competitors who have competed in the stage over time. The _stage_clean_ dataset lists riders who "did not finish", "over the time limit" and "not qualified" as "DNF", "OTL" and "NQ" as their rank for the stage, these ranks were tallied up for every stage as well as the particpants for every stage and then divided over each other to produce the percentage rate of incompletion for each stage.  
+
 
 ```{r DNF-OTL-NQ, fig.cap = "The percentage of riders that have not finished the main for stages, since 1969"}
 total_riders_dnf_terrain %>%
@@ -211,9 +225,19 @@ total_riders_dnf_terrain %>%
   xlab("Stage Type") +
   ylab("Percentage") +
   theme_linedraw() 
+ggplotly()
 ```
 
-Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have failed to complete the specific stage types with the stage type o the x axis and the percentage on the y axis. The most strenuous and and gruelling stages of the Tour are the Mountain and Hilly stages whicg show to be the hardest terrains for riders to finish with the highest percentage of riders failing to complete mountain stages being 2.13% and Hilly stages with 1.61%. Time trial's have the least percentage of failed to complete riders with .29% and Flat stages being over double that. Time trial stages are run individually and are usually shorter distances on most often on more flatter terrain these characteristics make it much safer, reduced physical risk with strain and collision, and relatively easier than the other three which makes sense as to why has the lowst non-completion rate while, Flat stages, despite being flat run a higher risk of collision which could explain it having a percentage almost double that of time trail incompletion rates. 
+Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have failed to complete the specific stage types with the stage type on the x axis and the percentage on the y axis. The Mountain and Hilly stages show to be the hardest terrains for riders to finish. Percentage of riders who have failed to complete each stage are:
+
+  - Mountain stage: 2.13% of all riders that have entered the stage have failed to complete it
+  - Hilly stage: 1.61% of all riders that have entered the stage have failed to complete it
+  - Flat stage: 0.61% of all riders that have entered the stage have failed to complete it
+  - Time trial: 0.29% of all riders that have entered the stage have failed to complete it
+
+Time trial's have the least percentage of failed to complete riders with .29% and Flat stages being over double that. Time trial stages are run individually and are usually shorter distances on most often on more flatter terrain these characteristics can make it safer with reduced physical risk and collision risk. This may show that time trials are vital stage to master given their low incompletion rate which could be due to their safer conditions, which could allow for skilled riders to maximise their abilities and use these stages to improve their time gap with competitors. Furthemore, given mountain stages and hilly stages show higher incompletion rates, it would indicate that tailoring training and strategy to these stages could be benefical in the outcome of a riders race as well as, given the greater historical difficulty relative to the outher stages as shown by the higher rate, these could be stages where a rider looks to target the competition by making these stages a strength in order to increase their position when other riders may struggle more. 
+
+
 
 # 2. Is there a change in biological traits of overall winners over the years?
 
