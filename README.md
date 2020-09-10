@@ -5,7 +5,10 @@ Team name: Grevillea
 Team members:
 
 * Samuel Lyubic
-* [FILL]
+* Bendi Ang
+* Dewi Lestari Amaliah
+* Yiwen Jiang
+
 
 # Steps
 
