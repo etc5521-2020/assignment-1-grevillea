@@ -121,6 +121,82 @@ The `stage_clean` is expands on the `tdf_stages` dataset, including results of a
 `elapsed`: Time elapsed for the stage
 
 
+
+- The `tdf_winner` data comes from _tdf_winners.csv_. The data contains information about 106 winners of the Tour de France from 1903 to 2019. The variables are showing in the Table \@ref(tab:winners-table).  
+
+```{r winners-table, echo=FALSE}
+winners_info <- tibble(Variable = c("edition", "start_date", "winner_name", "winner_team", "distance", "time_overall", "time_margin", "stage_wins", "stage_led", "height", "weight", "age", "born", "died", "full_name", "nickname", "birth_town", "birth_country", "nationality"),
+                          Class = c("integer", "double", "character", "character", "double", "double", "double", "double", "double", "double", "double", "integer", "double", "double", "character", "character", "character", "character", "character"),
+                          Description = c("Edition of the Tour de France", "Start date of the Tour", 
+                                          "Winner's name", 
+                                          "Winner's team (NA if not on a team)", 
+                                          "Distance traveled in KM across the entire race", 
+                                          "Time in hours taken by the winner to complete the race",
+                                          "Difference in finishing time between the race winner and the runner up",
+                                          "Number of stage wins (note that it is possible to win the GC without winning any stages at all)",
+                                          "Stages led is the number of stages spent as the race leader (wearing the yellow jersey) by the eventual winner",
+                                          "Height in meters",
+                                          "Weight in kg",
+                                          "Age as winner",
+                                          "year born", 
+                                          "Year died", "Full name", "Nickname", "Birth town", "Birth country", "Nationality")) 
+
+winners_info %>%
+  kable(booktabs = TRUE,
+        caption = "Variables in tdf_winners data") %>%
+  kable_styling(bootstrap_options = "striped", 
+                full_width = F, 
+                position = "left")
+```
+
+- The `stage_data` data comes from _stage_data.csv_. The data contains ranking information for each stage of the annual race. The variables are showing in the Table \@ref(tab:stage-clean-table). 
+
+```{r stage-clean-table, echo=FALSE}
+stage_data_info <- tibble(Variable = c("edition", "year", "stage_results_id", "rank", "time", "rider", "age", "team", "points", "elapsed", "bib_number"),
+                          Class = c("integer", "double", "character", "character", "double", "character", "integer", "character", "integer", "double", "integer"),
+                          Description = c("Race edition", 
+                                          "Year of race", 
+                                          "Stage ID", 
+                                          "Rank of racer for stage", 
+                                          "Time of racer",
+                                          "Rider name",
+                                          "Age of racer",
+                                          "Team (NA if not on team)",
+                                          "Points for the stage",
+                                          "Time elapsed stored as lubridate::period",
+                                          "Bib number")) 
+
+stage_data_info %>%
+  kable(booktabs = TRUE,
+        caption = "Variables in stage_data data") %>%
+  kable_styling(bootstrap_options = "striped", 
+                full_width = F, 
+                position = "left")
+```
+
+- The `stage_data` data comes from _stage_data.csv_. The data contains information of each stage for the annual race. The variables are showing in the Table \@ref(tab:stage-table). 
+
+```{r stage-table, echo=FALSE}
+stage_info <- tibble(Variable = c("Stage", "Date", "Distance", "Origin", "Destination", "Type", "Winner", "Winner_Country"),
+                          Class = c("character", "double", "double", "character", "character", "character", "character", "character"),
+                          Description = c("Stage Number", 
+                                          "Date of stage", 
+                                          "Distance in KM", 
+                                          "Origin city", 
+                                          "Destination city",
+                                          "Stage Type",
+                                          "Winner of the stage",
+                                          "Winner's nationality")) 
+
+stage_info %>%
+  kable(booktabs = TRUE,
+        caption = "Variables in tdf_stages data") %>%
+  kable_styling(bootstrap_options = "striped", 
+                full_width = F, 
+                position = "left")
+```
+
+
 # Analysis and findings {-#mysection}
 
 ## Time and place for speed {-#mysection}
