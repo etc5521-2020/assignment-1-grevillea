@@ -59,6 +59,7 @@ The colours and patterns of jerseys are some things one should look out for in e
 
 You may ask, why have teams when there is only one individual champion for the General Classification? '*Domestiques*' (french in servant), a term frequently used to describe riders who support a team leader to win stages and accumulate the least elapsed time at the end of the race. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy (@Prinz2012); This is known as 'Lead-out Trains'. Teams typically consists of 8 riders and are denoted by numbers, where the team leader wears the lowest number.
 
+
 # Tour De France Data {-#mysection}
 
 ## Getting the Data (and Debugging Process) {-#mysection}
@@ -144,9 +145,9 @@ winners_info <- tibble(Variable = c("edition", "start_date", "winner_name", "win
 winners_info %>%
   kable(booktabs = TRUE,
         caption = "Variables in tdf_winners data") %>%
-  kable_styling(bootstrap_options = "striped", 
+  kable_styling(bootstrap_options =  c("striped", "hover", "condensed", "responsive"), 
                 full_width = F, 
-                position = "left")
+                position = "center")
 ```
 
 - The `stage_data` data comes from _stage_data.csv_. The data contains ranking information for each stage of the annual race. The variables are showing in the Table \@ref(tab:stage-clean-table). 
@@ -169,9 +170,9 @@ stage_data_info <- tibble(Variable = c("edition", "year", "stage_results_id", "r
 stage_data_info %>%
   kable(booktabs = TRUE,
         caption = "Variables in stage_data data") %>%
-  kable_styling(bootstrap_options = "striped", 
+  kable_styling(bootstrap_options =  c("striped", "hover", "condensed", "responsive"), 
                 full_width = F, 
-                position = "left")
+                position = "center")
 ```
 
 - The `stage_data` data comes from _stage_data.csv_. The data contains information of each stage for the annual race. The variables are showing in the Table \@ref(tab:stage-table). 
@@ -191,10 +192,11 @@ stage_info <- tibble(Variable = c("Stage", "Date", "Distance", "Origin", "Destin
 stage_info %>%
   kable(booktabs = TRUE,
         caption = "Variables in tdf_stages data") %>%
-  kable_styling(bootstrap_options = "striped", 
+  kable_styling(bootstrap_options =  c("striped", "hover", "condensed", "responsive"), 
                 full_width = F, 
-                position = "left")
+                position = "center")
 ```
+
 
 
 # Analysis and findings {-#mysection}
@@ -320,6 +322,86 @@ Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overal
     - Time trial combined average speed follows a relatively declining trend through to round 16 where there is a the lowest average speed since 1988 recorded of 22.53km/hr for overall winners and 20.31km/hr for the field. Speeds increase through to stage 18 and level out there.
     - The time trial average speeds show that for time trials, the overall winners have the largest speed gap between them and the field, for all stage types. Overall winners hold larger gap for the longest stretch of stages relative to the the differences present in the other three stage types. 
     - This would indicate that overall winners are far more elite then the field at time trials and look likely to minimise their race time along them no matter what stage of the tour the time trial stage falls on. The maximum speed of across the time trials for the overall winners and the field comes when the time trial falls on stage one with speeds of 49,53km/h and 48.13km/h respectively. 
+    
+## What are the characteristics of those winner riders?
+
+```{r}
+library(ggrepel)
+editions %>%
+  ggplot(aes(x = start_date, y = weight / height^2)) +
+  geom_point(na.rm = TRUE) + 
+  geom_hline(yintercept = c(19, 25), color = "red", linetype = "dashed") +
+  geom_label_repel(data = editions %>% sample_n(20), 
+                  aes(label = winner_name), size = 1.8,  
+                  nudge_y = 4, na.rm = TRUE,
+                  segment.alpha = 0.2) + 
+  xlab('Edition date') + 
+  ylab('Body mass index (BMI)') + 
+  ggtitle('Tour de France winners BMI') + 
+  theme_classic() 
+```
+
+```{r, fig.width=10}
+library(gridExtra)
+age_line <- winners %>%
+  group_by(decade = 10 * (year(start_date) %/% 10)) %>%
+  summarise(age = mean(age, na.rm = TRUE)) %>%
+  ggplot(aes(x = decade, y = age)) +
+  geom_line(colour="steelblue") +
+  ylab("Average Age") +
+  xlab("Year") +
+  ggtitle('Tour de France winers average age (per decade)') + 
+  theme_classic() 
+
+
+
+age_histogram <- winners %>%
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 2, colour="steelblue", fill="steelblue", alpha=0.2) +
+  geom_vline(xintercept = mean(winners$age, na.rm = TRUE), color = "red", linetype = "dashed") +
+  ylab("Count") +
+  xlab("Winners' Age")+
+  ggtitle('Tour de France winners age distribution') + 
+  theme_classic() 
+
+grid.arrange(age_line, age_histogram, ncol = 2)
+```
+
+```{r}
+winners %>%
+  count(nationality, sort = TRUE) %>%
+  ggplot(aes(reorder(nationality, n), n)) +
+  geom_col(width = 0.8,
+           alpha = 0.8,
+           color = "#E59866",
+           fill = "#E59866") +
+  labs(x = NULL, y = 'Tour de France wins') +
+  ggtitle("The number of times the Tour de France country has won") +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank()) +
+  coord_flip()
+```
+
+```{r}
+winners %>%
+  count(winner_team, name = 'num_of_wins') %>%
+  filter(num_of_wins > 1) %>%
+  ggplot(aes(reorder(winner_team, num_of_wins), num_of_wins)) +
+  geom_col(width = 0.8,
+           alpha = 0.7,
+           color = "#3498DB",
+           fill = "#3498DB") +
+  labs(x = NULL, y = 'Tour de France wins') +
+  ggtitle("The number of times the Tour de France team has won") +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.ticks = element_blank(),
+        panel.background = element_blank()) +
+  coord_flip()
+```
+
 
 ## Where does the greatest difficulty lie? {-#mysection}
 
