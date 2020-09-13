@@ -28,6 +28,7 @@ library(plotly)
 # For web scraping
 library(polite)
 library(rvest)
+library(ggrepel)
 ```
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
@@ -325,8 +326,10 @@ Figure \@ref(fig:plot-speeds) illustrates the average stage speed for all overal
     
 ## What are the characteristics of those winner riders?
 
-```{r}
-library(ggrepel)
+
+
+```{r bmi, fig.cap="BMI of previous Tour de France winners"}
+
 editions %>%
   ggplot(aes(x = start_date, y = weight / height^2)) +
   geom_point(na.rm = TRUE) + 
@@ -341,7 +344,7 @@ editions %>%
   theme_classic() 
 ```
 
-```{r, fig.width=10}
+```{r age, fig.width=10, fig.cap="The age of the previous winners of the Tour de France"}
 library(gridExtra)
 age_line <- winners %>%
   group_by(decade = 10 * (year(start_date) %/% 10)) %>%
@@ -352,8 +355,6 @@ age_line <- winners %>%
   xlab("Year") +
   ggtitle('Tour de France winers average age (per decade)') + 
   theme_classic() 
-
-
 
 age_histogram <- winners %>%
   ggplot(aes(x = age)) +
@@ -377,6 +378,7 @@ winners %>%
            fill = "#E59866") +
   labs(x = NULL, y = 'Tour de France wins') +
   ggtitle("The number of times the Tour de France country has won") +
+  geom_text(aes(label = n, y = n + 1)) +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.ticks = element_blank(),
@@ -394,6 +396,7 @@ winners %>%
            color = "#3498DB",
            fill = "#3498DB") +
   labs(x = NULL, y = 'Tour de France wins') +
+  geom_text(aes(label = num_of_wins, y = num_of_wins + 0.5)) +
   ggtitle("The number of times the Tour de France team has won") +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
@@ -402,6 +405,31 @@ winners %>%
   coord_flip()
 ```
 
+## Is the Tour de France becoming more competitive?
+
+```{r, fig.cap="Average hours taken by the winner to complete the race"}
+winners %>%
+  group_by(decade = 10 * (year(start_date) %/% 10)) %>%
+  summarise(time_overall = mean(time_overall, na.rm = TRUE)) %>%
+  ggplot(aes(x = decade, y = time_overall)) +
+  geom_line(colour="steelblue") +
+  ylab("Average Hours") +
+  xlab("Year") +
+  ggtitle('Tour de France winers average finish time (per decade)') + 
+  theme_classic() 
+```
+
+```{r, fig.asp="Average difference in finishing time between the race winner and the runner up"}
+winners %>%
+  group_by(decade = 10 * (year(start_date) %/% 10)) %>%
+  summarise(time_margin = mean(time_margin, na.rm = TRUE)) %>%
+  ggplot(aes(x = decade, y = time_margin * 60)) +
+  geom_line(colour="steelblue") +
+  ylab("Average time difference (min)") +
+  xlab("Year") +
+  ggtitle('Tour de France winers average time margin (per decade)') + 
+  theme_classic() 
+```
 
 ## Where does the greatest difficulty lie? {-#mysection}
 
