@@ -59,13 +59,18 @@ The colours and patterns of jerseys are some things one should look out for in e
 
 You may ask, why have teams when there is only one individual champion for the General Classification? '*Domestiques*' (french in servant), a term frequently used to describe riders who support a team leader to win stages and accumulate the least elapsed time at the end of the race. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy (@Prinz2012); This is known as 'Lead-out Trains'. Teams typically consists of 8 riders and are denoted by numbers, where the team leader wears the lowest number.
 
-# Tour De France Data {-#mysection}
+## Data Source {-#mysection}
 
-## Getting the Data (and Debugging Process) {-#mysection}
+The original source of the Tour de France data set is from the `tdf` package written by @tdf. The data is then provided and available to download in the [TidyTuesday's GitHub repository](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md) by @jthomasmock. There are three data sets regarding Tour de France available in this repository, namely `tdf_winners.csv`, `stage_data.csv`, and `tdf_stages.csv`. Hence, it is actually the most convenient way to load and read-in the Tour De France data set. However, errors were discovered in the `time` and `elapsed` variables as the `lubridate::period` objects were missing and incorrect. Thus, we used the data directly from the `tdf` package and opted to use the cleaning script that is provided by @jthomasmock in this repository. 
 
-Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the Tour De France data set. However, we discovered errors in the `time` and `elapsed` variables as the `lubridate::period` objects were missing and incorrect. Furthermore, `tdf_stages` data set only provided data till the 2017 edition while the actual dataset covered all the way to 2019. Thus, we opted to use the cleaning script found in the [same GitHub link](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md). 
+Furthermore, `tdf_stages` data set only provided data till the 2017 edition while the actual data set covered all the way to 2019. Hence to complete the missing period, the data from Wikipedia [@wikiTDF2018] and [@wikiTDF2019] were scraped to obtain the stages data set for 2018 and 2019. These Wikipedia pages corresponds to how the actual data set obtained its data; Thus binding the data was straightforward as the structure the data was analogous with the `tdf_stages` data set.
+
+
+####
 
 Accordingly, our debugging process includes renaming inconsistent variable names, extracting components of date-time objects and using regular expressions to fix the structure of character strings to reproduce the same data set that was intended. Further, we web scraped the data from Wikipedia (@wikiTDF2018 and @wikiTDF2019) to obtain the stages data set for 2018 and 2019. These Wiki pages corresponds to how the actual data set obtained its data; Thus binding the data was  straightforward as the structure the data was analogous with the `tdf_stages` data set.
+
+####
 
 ```{r read-data, include = FALSE}
 stage_clean <- read.csv(here::here("data/stage_data.csv"))
@@ -74,6 +79,14 @@ tdf_stages <- read.csv(here::here("data/tdf_stages.csv"))
 ```
 
 ## Data Description {-#mysection}
+
+
+### Question to be answered in the analysis {-#mysection}
+
+
+
+
+
 The data used for this analysis originates from the `tdf` R package, which is essentially a container for the  `editions` data frame. This data set, along with its cleaning script are hosted on [GitHub](https://github.com/alastairrushworth/tdf) and is readily available. This data set encompasses the historic data about Tour de France riders, stages and winners.
 
 ```{r explore-winners}
@@ -708,6 +721,14 @@ Amongst the different stage types, rankings of overall winners had the least med
 Secondly, constantly winning team trial tests convey that a great team is a significant driver for winning the stage. A strategic reality is that the speediest individual will most likely not surpass a group of cyclists as the perfect sprints are often a result of seamless teamwork and aerodynamic advantages (@Prinz2012). This is especially complex as teams must find an ideal pace despite their diverse body types and skills. For instance, team's *domestiques* (French for servants) work in unison to allow for drafting (shield from wind resistance by riders in front) to facilitate a smoother ride for the team leader (@Rhett2018). This can ensure he arrives at crucial moments of the race with little energy expended. 
 
 Unlike the constant speed in mountain stages,flat stages are associated with short bursts of high power and long periods with a reduced intensity of exercise (@vogt2007cycling). With flat stages accounting for nearly one third (`r rank_summ$total_stage_type[1]/nrow(stage_winners_2000s)`) of all stages in an edition on average, it is crucial for overall winners to be proficient at these stages. Although flat stages are tailored for sprinters and heavier riders, it is also a game of strategy. In most parts of the stage, cyclists ride close together in the peloton for favorable aerodynamic conditions by drafting. Studies have proven that this tactical behavior is especially strong with the dynamics of the peloton, where riders can save up to 30% of energy costs (@Prinz2012). At the final 25km, teams form breakaway groups to split from the peloton and accelerate towards the finishing line @vogt2007cycling. Overall winners tend to be particularly good at this strategy, and are ranked ten and under for most of the flat stages (Figure \@ref(fig:ranks-by-stage-type))
+
+
+
+### The Distance Through History {-#mysection}
+
+
+
+
 
 # Conclusion {-#mysection}
 
