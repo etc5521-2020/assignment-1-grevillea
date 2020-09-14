@@ -29,6 +29,7 @@ library(plotly)
 library(polite)
 library(rvest)
 library(ggrepel)
+library(naniar)
 ```
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
@@ -74,6 +75,12 @@ stage_clean <- read.csv(here::here("data/stage_data.csv"))
 winners <- read.csv(here::here("data/tdf_winners.csv"))
 tdf_stages <- read.csv(here::here("data/tdf_stages.csv"))
 ```
+
+```{r, fig.cap="Visualise the missing value in stage data", fig.align= "center"}
+stage_clean %>%
+  vis_miss(sort_miss = TRUE, warn_large_data = FALSE)
+```
+
 
 ## Data Description {-#mysection}
 The data used for this analysis originates from the `tdf` R package, which is essentially a container for the  `editions` data frame. This data set, along with its cleaning script are hosted on [GitHub](https://github.com/alastairrushworth/tdf) and is readily available. This data set encompasses the historic data about Tour de France riders, stages and winners.
@@ -408,27 +415,31 @@ winners %>%
 ## Is the Tour de France becoming more competitive?
 
 ```{r, fig.cap="Average hours taken by the winner to complete the race"}
-winners %>%
+winner_hours <- winners %>%
   group_by(decade = 10 * (year(start_date) %/% 10)) %>%
   summarise(time_overall = mean(time_overall, na.rm = TRUE)) %>%
-  ggplot(aes(x = decade, y = time_overall)) +
-  geom_line(colour="steelblue") +
+  ggplot() +
+  geom_line(aes(x = decade, y = time_overall), colour="steelblue") +
   ylab("Average Hours") +
   xlab("Year") +
   ggtitle('Tour de France winers average finish time (per decade)') + 
   theme_classic() 
+
+ggplotly(winner_hours)
 ```
 
-```{r, fig.asp="Average difference in finishing time between the race winner and the runner up"}
-winners %>%
+```{r, fig.cap="Average difference in finishing time between the race winner and the runner up"}
+winner_time_margin <- winners %>%
   group_by(decade = 10 * (year(start_date) %/% 10)) %>%
   summarise(time_margin = mean(time_margin, na.rm = TRUE)) %>%
-  ggplot(aes(x = decade, y = time_margin * 60)) +
-  geom_line(colour="steelblue") +
+  ggplot() +
+  geom_line(aes(x = decade, y = time_margin * 60), colour="steelblue") +
   ylab("Average time difference (min)") +
   xlab("Year") +
   ggtitle('Tour de France winers average time margin (per decade)') + 
   theme_classic() 
+
+ggplotly(winner_time_margin)
 ```
 
 ## Where does the greatest difficulty lie? {-#mysection}
