@@ -30,6 +30,7 @@ library(polite)
 library(rvest)
 library(ggrepel)
 library(naniar)
+library(gganimate)
 ```
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
@@ -209,7 +210,7 @@ stage_info %>%
 
 # Analysis and findings {-#mysection}
 
-```{r}
+```{r, fig.cap="The number of times the rider win the Tour de France"}
 winners %>%
   count(winner_name, sort = TRUE) %>%
   filter(n > 1) %>%
@@ -219,27 +220,24 @@ winners %>%
            color = "#85929E",
            fill = "#85929E") +
   labs(x = NULL, y = NULL) +
-  ggtitle("The number of times the rider win the Tour de France") +
   geom_text(aes(label = n, y = n + 0.5)) +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.ticks = element_blank(),
+        axis.text.x = element_blank(),
         panel.background = element_blank()) +
   coord_flip()
 ```
 
 
 ```{r}
-tdf_stages <- tdf_stages %>%
+tdf_stages_animation <- tdf_stages %>%
   mutate(year = year(Date),
          stage = Stage)
-```
 
-
-```{r}
 stages_joined <- stage_clean %>%
   extract(stage_results_id, "stage", "stage-(.*)") %>%
-  inner_join(tdf_stages, by = c("year", "stage")) %>%
+  inner_join(tdf_stages_animation, by = c("year", "stage")) %>%
   mutate(rank = as.integer(rank)) %>%
   group_by(year, stage) %>%
   mutate(finishers = sum(!is.na(rank))) %>%
@@ -254,12 +252,10 @@ total_points <- stages_joined %>%
 
 top_10_2019 <- total_points %>%
   filter(year == max(year)) %>%
-  top_n(10, total_points)
+  top_n(15, total_points)
 ```
 
-```{r}
-library(gganimate)
-
+```{r, fig.cap="The number of times the rider win the Tour de France"}
 stages_joined %>%
   filter(year == max(year)) %>%
   semi_join(top_10_2019, by = "rider") %>%
@@ -269,10 +265,15 @@ stages_joined %>%
   group_by(rider) %>%
   mutate(cumulatice_points = cumsum(points)) %>%
   ungroup() %>%
-  ggplot(aes(cumulatice_points, rider)) +
+  mutate(highlight = ifelse(rider == "Bernal Egan", T, F)) %>%
+  ggplot(aes(cumulatice_points, rider, fill = highlight)) +
   geom_col() +
-  transition_time(stage) +
-  labs(title = "stage")
+  ylab("Riders") +
+  xlab("Cumulative Points") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_fill_manual(values=c('#839192', '#EC7063')) +
+  transition_time(stage) 
 ```
 
 
@@ -442,7 +443,7 @@ age_histogram <- winners %>%
 grid.arrange(age_line, age_histogram, ncol = 2)
 ```
 
-```{r}
+```{r, fig.cap="The number of times the Tour de France country has won"}
 winners %>%
   count(nationality, sort = TRUE) %>%
   ggplot(aes(reorder(nationality, n), n)) +
@@ -451,16 +452,16 @@ winners %>%
            color = "#E59866",
            fill = "#E59866") +
   labs(x = NULL, y = 'Tour de France wins') +
-  ggtitle("The number of times the Tour de France country has won") +
   geom_text(aes(label = n, y = n + 1)) +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.ticks = element_blank(),
+        axis.text.x = element_blank(),
         panel.background = element_blank()) +
   coord_flip()
 ```
 
-```{r}
+```{r, fig.cap="The number of times the Tour de France team has won"}
 winners %>%
   count(winner_team, name = 'num_of_wins') %>%
   filter(num_of_wins > 1) %>%
@@ -471,10 +472,10 @@ winners %>%
            fill = "#3498DB") +
   labs(x = NULL, y = 'Tour de France wins') +
   geom_text(aes(label = num_of_wins, y = num_of_wins + 0.5)) +
-  ggtitle("The number of times the Tour de France team has won") +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.ticks = element_blank(),
+        axis.text.x = element_blank(),
         panel.background = element_blank()) +
   coord_flip()
 ```
