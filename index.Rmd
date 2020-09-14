@@ -1,17 +1,17 @@
 ---
-title: "ETC5521 Assignment 1"
+title: "ETC5521 Assignment 2"
 subtitle: "Tour de france"
 team: Grevillea
 author:
-  - Samuel Lyubic
-  - Brendi Ang
+  - Dewi Lestari Amaliah
+  - Yiwen Jiang
 date: "`r Sys.Date()`"
 output:
     bookdown::html_document2:
       keep_tex: yes
       number_sections: yes
       citation_package: biblatex
-      toc: false
+      toc: true
 bibliography: references.bib
 biblio-style: authoryear-comp
 ---
@@ -78,11 +78,21 @@ winners <- read.csv(here::here("data/tdf_winners.csv"))
 tdf_stages <- read.csv(here::here("data/tdf_stages.csv"))
 ```
 
-## Data Description {-#mysection}
+# Data Description {-#mysection}
 
 
-### Question to be answered in the analysis {-#mysection}
+## Question to be answered in the analysis {-#mysection}
 
+As this analysis continues the previous analysis, we will review some of the questions from the previous analysis. We would also add two new questions, so in total, we would answer three questions as follows:
+
+1. What are the characteristics of Tour de France winner riders? *This question is actually the combination of some questions in the previous analysis such as “Are elite riders similar?” “Which way is age going?”, “How has age impacted overall results?” and “Does it matter where you’re from?”.*
+2. How does the distance and speed of the Tour de France change?
+3. Is the Tour de France becoming more competitive?
+
+
+## Variable Description {-#mysection}
+
+## Data Cleaning {-#mysection}
 
 
 
