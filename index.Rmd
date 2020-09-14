@@ -3,6 +3,8 @@ title: "ETC5521 Assignment 2"
 subtitle: "Tour de france"
 team: Grevillea
 author:
+  - (Samuel Lyubic)
+  - (Brendi Ang)
   - Dewi Lestari Amaliah
   - Yiwen Jiang
 date: "`r Sys.Date()`"
@@ -25,6 +27,7 @@ library(kableExtra)
 library(lubridate)
 library(tdf)
 library(plotly)
+library(ggExtra)
 # For web scraping
 library(polite)
 library(rvest)
@@ -734,7 +737,96 @@ Unlike the constant speed in mountain stages,flat stages are associated with sho
 
 
 
-### The Distance Through History {-#mysection}
+### "Le Tour" Distance Through History {-#mysection}
+
+```{r}
+
+# The previous analysis only used the data from 1969. 
+# In this analysis, we would not cut the period of the data
+# We would use mostly the same code, but we remove the filter of year
+# We also change the terrain type categorisation
+
+stage_clean_stg_number_new <- stage_clean %>%
+  group_by(stage_results_id) %>%
+  separate(stage_results_id, c("stage", "stage_number"), "-") %>%
+  mutate(year_stage = paste0(year, "-", stage_number)) 
+
+tdf_stage_stg_number_new <- tdf_stages %>%
+  mutate(year = year(Date),
+         year_stage = paste0(year, "-", Stage)) %>%
+  select(Stage, Date, Type, year, year_stage, Distance) %>%
+  janitor::clean_names() 
+
+tdf_stage_clean_new<-  tdf_stage_stg_number_new %>%
+  left_join(stage_clean_stg_number, by = "year_stage") %>%
+  select(stage_number, rank, rider, elapsed, year.x, distance, type, date) %>%
+  rename(year = year.x)
+
+tdf_stages_names_clean_new <- tdf_stage_clean_new %>%
+  mutate(
+    Type_terrain = case_when(
+      str_detect(type, "mountain|Mountain|mountain(s)") ~ "Mountain",
+      str_detect(type, "Flat|Plain") ~ "Flat",
+      str_detect(type, "Individual time trial|Team time trial") ~ "Time Trial",
+      str_detect(type, "Hilly") ~ "Hilly",
+      str_detect(type, "Transition|Intermediate|Half") ~ "Transition"))
+
+
+stage_type_group <- tdf_stages_names_clean_new %>%
+  group_by(year, Type_terrain) %>%
+  summarise(type_ave = mean(distance, na.rm = TRUE)) %>%
+  pivot_wider(names_from = Type_terrain,
+              values_from = type_ave) %>%
+  replace_na(list(`Time Trial` = 0, Hilly = 0, Transition = 0)) %>% #replace the NA
+  mutate(total_mount_hill = Mountain + Hilly,
+         total_dist = Mountain + Flat + Hilly + Transition + `Time Trial`,
+         perc_mount_hill = total_mount_hill/total_dist * 100)
+
+perc_mount_hill <- stage_type_group %>%
+  select(year, perc_mount_hill)
+```
+
+
+
+
+```{r dist-data}
+
+winners <- winners %>% mutate(year = year(start_date))
+
+dist_data <- left_join(winners, perc_mount_hill, by = "year") %>%
+  mutate(perc_mount_hill_cat = ifelse(perc_mount_hill < 40, "< 40",
+                                      ifelse(perc_mount_hill >= 40 & perc_mount_hill < 50 , "40 - 49.9",
+                                             ifelse(perc_mount_hill >= 50 & perc_mount_hill < 60 , "50 - 59.9",
+                                                    ">= 60")))) %>%
+  mutate(perc_mount_hill_cat = factor(perc_mount_hill_cat, levels = c("< 40", "40 - 49.9", "50 - 59.9", ">= 60")))
+
+
+```
+
+```{r dist-plot}
+dist_plot <- ggplot(dist_data) +
+  geom_point(aes(x = year,
+             y = distance,
+             colour = perc_mount_hill_cat)) +
+  labs(x = "Year",
+       y = "Distance (km)",
+       title = "The History of Tour de France Distance",
+       colour = "Percentage of mountain and hilly stage") +
+  theme_bw() +
+  geom_smooth(aes(x = year, y = distance),
+              method = "loess", se = FALSE, color = "steelblue", alpha = 0.5, size = 0.5) +
+  theme(legend.position = "bottom",
+        text = element_text(size = 10)) 
+  
+ggMarginal(dist_plot, margins = 'y', size=4, type = "histogram", fill = "steelblue", color = "white" )
+
+```
+
+
+
+
+
+
 
 
 
