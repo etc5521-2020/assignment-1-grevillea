@@ -28,6 +28,8 @@ library(lubridate)
 library(tdf)
 library(plotly)
 library(ggExtra)
+library(ggforce)
+library(patchwork)
 # For web scraping
 library(polite)
 library(rvest)
@@ -803,25 +805,99 @@ dist_data <- left_join(winners, perc_mount_hill, by = "year") %>%
 
 ```
 
-```{r dist-plot}
+```{r dist-plot, fig.cap = "The distance of Tour de France Route (1903-2019)"}
 dist_plot <- ggplot(dist_data) +
   geom_point(aes(x = year,
              y = distance,
              colour = perc_mount_hill_cat)) +
   labs(x = "Year",
        y = "Distance (km)",
-       title = "The History of Tour de France Distance",
+       title = "The distance of Tour de France Route through the history (1903-2019)",
        colour = "Percentage of mountain and hilly stage") +
   theme_bw() +
   geom_smooth(aes(x = year, y = distance),
               method = "loess", se = FALSE, color = "steelblue", alpha = 0.5, size = 0.5) +
+  scale_x_continuous(breaks=seq(1903, 2019, 10)) +
   theme(legend.position = "bottom",
-        text = element_text(size = 10)) 
+        text = element_text(size = 10),
+        plot.title.position = "plot") 
   
-ggMarginal(dist_plot, margins = 'y', size=4, type = "histogram", fill = "steelblue", color = "white" )
+ggMarginal(dist_plot, margins = 'y', size=4, type = "histogram", 
+           fill = "steelblue", 
+           color = "steelblue", 
+           alpha = 0.7 )
 
 ```
 
+
+
+```{r speed-data}
+dist_data <- dist_data %>% 
+  mutate(speed = distance/time_overall,
+         bicycle_tech = ifelse(year >= 1937 & year < 1972 , "derailleur intorudeced",
+                               ifelse(year >= 1972 & year < 1985, "lighweight bike intoduced",
+                                      ifelse(year >= 1985 & year < 1990, "disc wheel introduced",
+                                             ifelse(year >= 1990, "other technologies developed",
+                                                    "pre-revolutionery tech")))),
+         doping = ifelse(year >= 1990 & year < 2000, "doping is widespread, no test",
+                         ifelse(year >= 2000 & year < 2008, "doping is tested",
+                                ifelse(year >= 2008, "cyclist also monitored using blood passport",
+                                       "pre-doping widespread")))) %>%
+  mutate(bicycle_tech = factor(bicycle_tech, levels = c("pre-revolutionery tech", 
+                                            "derailleur intorudeced", 
+                                            "lighweight bike intoduced", 
+                                            "disc wheel introduced",
+                                            "other technologies developed")))
+
+# https://www.adelaidenow.com.au/sport/how-tour-de-france-cycle-race-evolved-over-100-years-ago/news-story/f759f06f3ae23d4faf4fcba089e37cd6?sv=5bfd117ddc9268e7db9f3cf2b5d0fa1
+
+# https://www.andrewaage.com/post/analyzing-tour-de-france-data/
+```
+
+
+```{r speed-plot, fig.height=6, fig.width=8, fig.cap = "Speed of the winners through the history (1903-2018)"}
+
+cuts1 <- data.frame(Ref="Doping is widespread, no test", vals=c(1990))
+cuts2 <- data.frame(Ref="Doping is tested", vals=c(2000))
+cuts3 <- data.frame(Ref="Blood passport usage", vals=c(2008))
+cuts <- rbind(cuts1, cuts2, cuts3)
+
+
+
+speed_plot <- ggplot(filter(dist_data, !is.na(speed))) +
+  geom_point(aes(x = year,
+                 y = speed,
+                 colour = bicycle_tech)) +
+  geom_smooth(aes(x = year, y = speed),
+              method = "loess", se = FALSE, color = "steelblue", alpha = 0.5, size = 0.5) +
+  geom_vline(data = cuts , aes(xintercept=vals), colour = "tomato", alpha = 0.5, size = 0.5) +
+  geom_text(mapping = aes(x = vals,
+                          y = 0,
+                          label = Ref,
+                          hjust = 0,
+                          vjust = -0.5,
+                          angle = 90),
+            data = cuts,
+            size = 3) + 
+  scale_x_continuous(breaks=seq(1900, 2020, 10)) +
+  scale_y_continuous(breaks=seq(20, 50, 5))+
+  theme_bw() +
+  theme(text = element_text(size = 10),
+        legend.position = "bottom") +
+  labs(title = "Speed of the winners through the history (1903-2018)",
+       subtitle = "Observing the association of speed with bicycle technology and doping usage",
+       x = "Year",
+       y = "Speed (km/hour)",
+       colour = "Bicycle technology") +
+  guides(colour=guide_legend(nrow=2,byrow=TRUE))
+  
+
+ggMarginal(speed_plot, margins = 'y', size=4, type = "density", 
+           fill = "steelblue", 
+           color = "steelblue", 
+           alpha = 0.4 )
+
+```
 
 
 
