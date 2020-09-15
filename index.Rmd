@@ -739,7 +739,9 @@ Unlike the constant speed in mountain stages,flat stages are associated with sho
 
 
 
-### "Le Tour" Distance Through History {-#mysection}
+### How does the distance and speed of the Tour de France change? {-#mysection}
+
+**The distance covered in Tour de France through the history**
 
 ```{r}
 
@@ -821,21 +823,51 @@ dist_plot <- ggplot(dist_data) +
   theme(legend.position = "bottom",
         text = element_text(size = 10),
         plot.title.position = "plot") 
+
+
   
 ggMarginal(dist_plot, margins = 'y', size=4, type = "histogram", 
            fill = "steelblue", 
-           color = "steelblue", 
-           alpha = 0.7 )
-
+           color = "steelblue",
+           alpha = 0.7)
 ```
 
 
 
+```{r}
+
+#legendtitle <- list(yref='paper',xref="paper",y=1.05,x=1.1, text="Mountain and hilly stage(%)",showarrow=F)
+
+fig_dist <- dist_data %>%
+  highlight_key(~perc_mount_hill_cat) %>%
+  plot_ly(
+    x = ~year, y = ~distance, text = ~perc_mount_hill_cat, color = ~perc_mount_hill_cat, mode = "markers", 
+    textposition = "none", hoverinfo = "x+y"
+  ) %>%
+  add_annotations( text="% of mount & hill", xref="paper", yref="paper",
+                  x=1.02, xanchor="left",
+                  y=0.8, yanchor="bottom",    # Same y as legend below
+                  legendtitle=TRUE, showarrow=FALSE ) %>%
+  layout(legend=list(y=0.8, yanchor="top" ),
+         title = "Tour de France distance from 1903-2019",
+         xaxis = list(title = "Edition"),
+         yaxis = list(title = "Distance (km)")) %>%
+  highlight(on = "plotly_click", off = "plotly_doubleclick")
+
+fig_dist
+```
+
+
+
+
+
+**The speed of the winners. How does the bicycle technology development and doping usage affect?**
+
 ```{r speed-data}
 dist_data <- dist_data %>% 
   mutate(speed = distance/time_overall,
-         bicycle_tech = ifelse(year >= 1937 & year < 1972 , "derailleur intorudeced",
-                               ifelse(year >= 1972 & year < 1985, "lighweight bike intoduced",
+         bicycle_tech = ifelse(year >= 1937 & year < 1972 , "derailleur introduced",
+                               ifelse(year >= 1972 & year < 1985, "lighweight bike introduced",
                                       ifelse(year >= 1985 & year < 1990, "disc wheel introduced",
                                              ifelse(year >= 1990, "other technologies developed",
                                                     "pre-revolutionery tech")))),
@@ -901,6 +933,16 @@ ggMarginal(speed_plot, margins = 'y', size=4, type = "density",
 
 
 
+```{r bmi-data}
+
+dist_data <- dist_data %>%
+  mutate(bmi = weight / (height^2))
+
+ggplot(filter(dist_data, !is.na(speed), !is.na(bmi))) +
+  geom_point(aes(x = bmi,
+                 y = speed))
+
+```
 
 
 
