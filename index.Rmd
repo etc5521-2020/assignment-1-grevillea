@@ -388,6 +388,12 @@ It is not difficult to observe that both the number of winners between countries
 
 ##  How does the distance and speed of the Tour de France change?
 
+<br>
+
+**The distance covered in Tour de France through the history**
+
+It is worthwhile for the next Tour de France contenders to observe how the distance has changed ever since the competition held for the first time in 1903 to get more understanding of the battlefield. The previous report by Ang and Lyubic, which calculated the percentage of the riders who failed to complete each stage, has given us a hint that the most significant difficulty lied in the mountain and hilly stages. Figure \@ref(fig:DNF-OTL-NQ) conveys that 2.13% of all riders that have entered the mountain stage have failed to complete it, whilst 1.61% of all riders that have entered the hilly stage have failed to complete it. 
+
 ```{r combining-stage-clean-tdf-stage-data}
 #code used to create the datasets for finding the terrains that aren't being completed as well as the overall winner
 
@@ -438,34 +444,29 @@ total_riders_dnf_terrain <- left_join(terrain_DNF_OTL_NQ, total_riders_stage, by
   mutate(pct_not_finish = (not_finished/total_riders)*100)
 ```
 
-The following section will be analyzing the in-completion rate across the different types of stages. Each stage carries with it it's own unique difficulties and understanding where riders have historically shown the greatest weakness could be beneficial at understanding stages that should be targeted and where energy needs to be conserved for. In order to conduct this analysis the total number riders over who failed to complete each stage was divided by the total number competitors who have competed in the stage over time. The _stage_clean_ dataset lists riders who "did not finish", "over the time limit" and "not qualified" as "DNF", "OTL" and "NQ" as their rank for the stage, these ranks were tallied up for every stage as well as the participants for every stage and then divided over each other to produce the percentage rate of in-completion for each stage.  
 
-```{r DNF-OTL-NQ, fig.cap = "The percentage of riders that have not finished the main for stages, since 1969"}
+```{r DNF-OTL-NQ, out.width="50%", fig.cap = "The percentage of riders that have not finished the main for stages, since 1969"}
 total_riders_dnf_terrain %>%
   ggplot(aes(x = fct_reorder(Type_terrain, -pct_not_finish),
              y = pct_not_finish)) +
-  geom_col(stat = "identity") +
-  ggtitle("The percentage of riders that failed to finish") +
+  geom_col(stat = "identity", fill = "tomato") +
+  ggtitle("Percentage of riders that failed to finish in each stage") +
   xlab("Stage Type") +
-  ylab("Percentage") +
-  theme_linedraw() 
+  ylab("Percentage of Riders") +
+  theme_classic() 
 ```
 
-Figure \@ref(fig:DNF-OTL-NQ) visualises the percentage of total riders that have failed to complete the specific stage types with the stage type on the x axis and the percentage on the y axis. The Mountain and Hilly stages show to be the hardest terrains for riders to finish. Percentage of riders who have failed to complete each stage are:
+We then used this information to categorize the distance by the percentage of the mountain and hilly stage. Based on the range of that percentage, we divided the distance into four types, namely 
 
-  - Mountain stage: 2.13% of all riders that have entered the stage have failed to complete it
-  - Hilly stage: 1.61% of all riders that have entered the stage have failed to complete it
-  - Flat stage: 0.61% of all riders that have entered the stage have failed to complete it
-  - Time trial: 0.29% of all riders that have entered the stage have failed to complete it
+1. The distance with less than 40% mountain and hill; 
+2. The distance with 40% - 49.9% mountain and hill; 
+3. The distance with 50% - 59.9% mountain and hill;
+4. The distance with more than and equal to 60% mountain and hill.  
 
-Time trial's have the least percentage of failed to complete riders with .29% and Flat stages being over double that. Time trial stages are run individually and are usually shorter distances on most often on more flatter terrain these characteristics can make it safer with reduced physical risk and collision risk. This may show that time trials are vital stage to master given their low in-completion rate which could be due to their safer conditions, which could allow for skilled riders to maximise their abilities and use these stages to improve their time gap with competitors. Furthemore, given mountain stages and hilly stages show higher incompletion rates, it would indicate that tailoring training and strategy to these stages could be beneficial in the outcome of a riders race as well as, given the greater historical difficulty relative to the other stages as shown by the higher rate, these could be stages where a rider looks to target the competition by making these stages a strength in order to increase their position when other riders may struggle more. 
-
-
+Further, we also add the trend line into the plot using the loess method. Our finding is reported in the following figure.
 
 
-**The distance covered in Tour de France through the history**
-
-```{r}
+```{r dist-wrangling}
 
 # The previous analysis only used the data from 1969. 
 # In this analysis, we would not cut the period of the data
@@ -513,8 +514,6 @@ perc_mount_hill <- stage_type_group %>%
 ```
 
 
-
-
 ```{r dist-data}
 
 winners <- winners %>% mutate(year = year(start_date))
@@ -529,7 +528,7 @@ dist_data <- left_join(winners, perc_mount_hill, by = "year") %>%
 
 ```
 
-```{r dist-plot, fig.cap = "The distance of Tour de France Route (1903-2019)"}
+```{r dist-plot, fig.cap = "The distance of Tour de France Route from 1903 to 2019"}
 dist_plot <- ggplot(dist_data) +
   geom_point(aes(x = year,
              y = distance,
@@ -538,26 +537,32 @@ dist_plot <- ggplot(dist_data) +
        y = "Distance (km)",
        title = "The distance of Tour de France Route through the history (1903-2019)",
        colour = "Percentage of mountain and hilly stage") +
-  theme_bw() +
   geom_smooth(aes(x = year, y = distance),
               method = "loess", se = FALSE, color = "steelblue", alpha = 0.5, size = 0.5) +
   scale_x_continuous(breaks=seq(1903, 2019, 10)) +
+  theme_classic() +
   theme(legend.position = "bottom",
         text = element_text(size = 10),
         plot.title.position = "plot") 
-
-
   
 ggMarginal(dist_plot, margins = 'y', size=4, type = "histogram", 
            fill = "steelblue", 
            color = "steelblue",
            alpha = 0.7)
 ```
+In Figure \@ref(fig:dist-plot), we can see that until 1933, the distance covered on the Tour de France continued to increase. The reason might be because, at that time, this competition was intended to gain the popularity of L'Auto Sport Magazine. The long distance cycling was sensational and could gain the sell of this magazine [@origin]. Not surprisingly, in that period, the Tour de France distance can reach more than 5000 km. After 1933, the competition's mileage gradually declined.
 
+If we look at the marginal histogram on the right side of the plot, we can also conclude that the distribution of Tour de France distance is multimodal. In the first three decades of the competition, the most frequent distance is around 5500 km. After that, the most frequent distances decreased to about 4500 km and 4000 km. Finally, it went down again to around 3500 km.
 
+Does this decreasing trend mean that the difficulty level of the Tour de France was also decreasing? Based on Figure \@ref(fig:dist-plot), we can see that after 1933, when the trend started to decrease, the route was still dominated by 40-49.9 percent mountains, just like before 1933. It means that the terrain did not change that much, and therefore, the difficulty might have been reduced. 
 
+In the early 1970s to 2006, as the distance decreased, the route was dominated by more challenging terrain, namely more than 50 percent of mountains and hills. We can say that 2007 to 2016 might be a more relaxed period because the trend declined and the percentage of mountains and hills were less than 50 percent of the total distance. In 2018 and 2019, the percentage of mountain and hill stages increased again to more than 60 percent of the total distance.
 
-**The speed of the winners. How does the bicycle technology development and doping usage affect?**
+<br>
+
+**The speed of the winners. How does the bicycle technology development and doping usage associate the performance?**
+
+<br>
 
 ```{r speed-data}
 dist_data <- dist_data %>% 
@@ -572,8 +577,8 @@ dist_data <- dist_data %>%
                                 ifelse(year >= 2008, "cyclist also monitored using blood passport",
                                        "pre-doping widespread")))) %>%
   mutate(bicycle_tech = factor(bicycle_tech, levels = c("pre-revolutionery tech", 
-                                            "derailleur intorudeced", 
-                                            "lighweight bike intoduced", 
+                                            "derailleur introduced", 
+                                            "lighweight bike introduced", 
                                             "disc wheel introduced",
                                             "other technologies developed")))
 
@@ -609,7 +614,7 @@ speed_plot <- ggplot(filter(dist_data, !is.na(speed))) +
             size = 3) + 
   scale_x_continuous(breaks=seq(1900, 2020, 10)) +
   scale_y_continuous(breaks=seq(20, 50, 5))+
-  theme_bw() +
+  theme_classic() +
   theme(text = element_text(size = 10),
         legend.position = "bottom") +
   labs(title = "Speed of the winners through the history (1903-2018)",
