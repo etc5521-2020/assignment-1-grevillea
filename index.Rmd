@@ -1,17 +1,19 @@
 ---
-title: "ETC5521 Assignment 1"
+title: "ETC5521 Assignment 2"
 subtitle: "Tour de france"
 team: Grevillea
 author:
-  - Samuel Lyubic
-  - Brendi Ang
+  - (Samuel Lyubic)
+  - (Brendi Ang)
+  - Dewi Lestari Amaliah
+  - Yiwen Jiang
 date: "`r Sys.Date()`"
 output:
     bookdown::html_document2:
       keep_tex: yes
       number_sections: yes
       citation_package: biblatex
-      toc: false
+      toc: true
 bibliography: references.bib
 biblio-style: authoryear-comp
 ---
@@ -25,6 +27,9 @@ library(kableExtra)
 library(lubridate)
 library(tdf)
 library(plotly)
+library(ggExtra)
+library(ggforce)
+library(patchwork)
 # For web scraping
 library(polite)
 library(rvest)
@@ -62,14 +67,18 @@ The colours and patterns of jerseys are some things one should look out for in e
 
 You may ask, why have teams when there is only one individual champion for the General Classification? '*Domestiques*' (french in servant), a term frequently used to describe riders who support a team leader to win stages and accumulate the least elapsed time at the end of the race. For instance, to set up a rider for a sprint, one rider rides at a high speed, with the team's sprinter following behind to cut wind resistance and conserve energy (@Prinz2012); This is known as 'Lead-out Trains'. Teams typically consists of 8 riders and are denoted by numbers, where the team leader wears the lowest number.
 
+## Data Source {-#mysection}
 
-# Tour De France Data {-#mysection}
+The original source of the Tour de France data set is from the `tdf` package written by @tdf. The data is then provided and available to download in the [TidyTuesday's GitHub repository](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md) by @jthomasmock. There are three data sets regarding Tour de France available in this repository, namely `tdf_winners.csv`, `stage_data.csv`, and `tdf_stages.csv`. Hence, it is actually the most convenient way to load and read-in the Tour De France data set. However, errors were discovered in the `time` and `elapsed` variables as the `lubridate::period` objects were missing and incorrect. Thus, we used the data directly from the `tdf` package and opted to use the cleaning script that is provided by @jthomasmock in this repository. 
 
-## Getting the Data (and Debugging Process) {-#mysection}
+Furthermore, `tdf_stages` data set only provided data till the 2017 edition while the actual data set covered all the way to 2019. Hence to complete the missing period, the data from Wikipedia [@wikiTDF2018] and [@wikiTDF2019] were scraped to obtain the stages data set for 2018 and 2019. These Wikipedia pages corresponds to how the actual data set obtained its data; Thus binding the data was straightforward as the structure the data was analogous with the `tdf_stages` data set.
 
-Initially, we downloaded all the data set (.csv format) directly from the ['tidytuesday github link'](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md), which was the most convenient way to load and read-in the Tour De France data set. However, we discovered errors in the `time` and `elapsed` variables as the `lubridate::period` objects were missing and incorrect. Furthermore, `tdf_stages` data set only provided data till the 2017 edition while the actual dataset covered all the way to 2019. Thus, we opted to use the cleaning script found in the [same GitHub link](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md). 
+
+####
 
 Accordingly, our debugging process includes renaming inconsistent variable names, extracting components of date-time objects and using regular expressions to fix the structure of character strings to reproduce the same data set that was intended. Further, we web scraped the data from Wikipedia (@wikiTDF2018 and @wikiTDF2019) to obtain the stages data set for 2018 and 2019. These Wiki pages corresponds to how the actual data set obtained its data; Thus binding the data was  straightforward as the structure the data was analogous with the `tdf_stages` data set.
+
+####
 
 ```{r read-data, include = FALSE}
 stage_clean <- read.csv(here::here("data/stage_data.csv"))
@@ -83,7 +92,25 @@ stage_clean %>%
 ```
 
 
-## Data Description {-#mysection}
+# Data Description {-#mysection}
+
+
+## Question to be answered in the analysis {-#mysection}
+
+As this analysis continues the previous analysis, we will review some of the questions from the previous analysis. We would also add two new questions, so in total, we would answer three questions as follows:
+
+1. What are the characteristics of Tour de France winner riders? *This question is actually the combination of some questions in the previous analysis such as “Are elite riders similar?” “Which way is age going?”, “How has age impacted overall results?” and “Does it matter where you’re from?”.*
+2. How does the distance and speed of the Tour de France change?
+3. Is the Tour de France becoming more competitive?
+
+
+## Variable Description {-#mysection}
+
+## Data Cleaning {-#mysection}
+
+
+
+
 The data used for this analysis originates from the `tdf` R package, which is essentially a container for the  `editions` data frame. This data set, along with its cleaning script are hosted on [GitHub](https://github.com/alastairrushworth/tdf) and is readily available. This data set encompasses the historic data about Tour de France riders, stages and winners.
 
 ```{r explore-winners}
@@ -973,6 +1000,219 @@ Amongst the different stage types, rankings of overall winners had the least med
 Secondly, constantly winning team trial tests convey that a great team is a significant driver for winning the stage. A strategic reality is that the speediest individual will most likely not surpass a group of cyclists as the perfect sprints are often a result of seamless teamwork and aerodynamic advantages (@Prinz2012). This is especially complex as teams must find an ideal pace despite their diverse body types and skills. For instance, team's *domestiques* (French for servants) work in unison to allow for drafting (shield from wind resistance by riders in front) to facilitate a smoother ride for the team leader (@Rhett2018). This can ensure he arrives at crucial moments of the race with little energy expended. 
 
 Unlike the constant speed in mountain stages,flat stages are associated with short bursts of high power and long periods with a reduced intensity of exercise (@vogt2007cycling). With flat stages accounting for nearly one third (`r rank_summ$total_stage_type[1]/nrow(stage_winners_2000s)`) of all stages in an edition on average, it is crucial for overall winners to be proficient at these stages. Although flat stages are tailored for sprinters and heavier riders, it is also a game of strategy. In most parts of the stage, cyclists ride close together in the peloton for favorable aerodynamic conditions by drafting. Studies have proven that this tactical behavior is especially strong with the dynamics of the peloton, where riders can save up to 30% of energy costs (@Prinz2012). At the final 25km, teams form breakaway groups to split from the peloton and accelerate towards the finishing line @vogt2007cycling. Overall winners tend to be particularly good at this strategy, and are ranked ten and under for most of the flat stages (Figure \@ref(fig:ranks-by-stage-type))
+
+
+
+### How does the distance and speed of the Tour de France change? {-#mysection}
+
+**The distance covered in Tour de France through the history**
+
+```{r}
+
+# The previous analysis only used the data from 1969. 
+# In this analysis, we would not cut the period of the data
+# We would use mostly the same code, but we remove the filter of year
+# We also change the terrain type categorisation
+
+stage_clean_stg_number_new <- stage_clean %>%
+  group_by(stage_results_id) %>%
+  separate(stage_results_id, c("stage", "stage_number"), "-") %>%
+  mutate(year_stage = paste0(year, "-", stage_number)) 
+
+tdf_stage_stg_number_new <- tdf_stages %>%
+  mutate(year = year(Date),
+         year_stage = paste0(year, "-", Stage)) %>%
+  select(Stage, Date, Type, year, year_stage, Distance) %>%
+  janitor::clean_names() 
+
+tdf_stage_clean_new<-  tdf_stage_stg_number_new %>%
+  left_join(stage_clean_stg_number, by = "year_stage") %>%
+  select(stage_number, rank, rider, elapsed, year.x, distance, type, date) %>%
+  rename(year = year.x)
+
+tdf_stages_names_clean_new <- tdf_stage_clean_new %>%
+  mutate(
+    Type_terrain = case_when(
+      str_detect(type, "mountain|Mountain|mountain(s)") ~ "Mountain",
+      str_detect(type, "Flat|Plain") ~ "Flat",
+      str_detect(type, "Individual time trial|Team time trial") ~ "Time Trial",
+      str_detect(type, "Hilly") ~ "Hilly",
+      str_detect(type, "Transition|Intermediate|Half") ~ "Transition"))
+
+
+stage_type_group <- tdf_stages_names_clean_new %>%
+  group_by(year, Type_terrain) %>%
+  summarise(type_ave = mean(distance, na.rm = TRUE)) %>%
+  pivot_wider(names_from = Type_terrain,
+              values_from = type_ave) %>%
+  replace_na(list(`Time Trial` = 0, Hilly = 0, Transition = 0)) %>% #replace the NA
+  mutate(total_mount_hill = Mountain + Hilly,
+         total_dist = Mountain + Flat + Hilly + Transition + `Time Trial`,
+         perc_mount_hill = total_mount_hill/total_dist * 100)
+
+perc_mount_hill <- stage_type_group %>%
+  select(year, perc_mount_hill)
+```
+
+
+
+
+```{r dist-data}
+
+winners <- winners %>% mutate(year = year(start_date))
+
+dist_data <- left_join(winners, perc_mount_hill, by = "year") %>%
+  mutate(perc_mount_hill_cat = ifelse(perc_mount_hill < 40, "< 40",
+                                      ifelse(perc_mount_hill >= 40 & perc_mount_hill < 50 , "40 - 49.9",
+                                             ifelse(perc_mount_hill >= 50 & perc_mount_hill < 60 , "50 - 59.9",
+                                                    ">= 60")))) %>%
+  mutate(perc_mount_hill_cat = factor(perc_mount_hill_cat, levels = c("< 40", "40 - 49.9", "50 - 59.9", ">= 60")))
+
+
+```
+
+```{r dist-plot, fig.cap = "The distance of Tour de France Route (1903-2019)"}
+dist_plot <- ggplot(dist_data) +
+  geom_point(aes(x = year,
+             y = distance,
+             colour = perc_mount_hill_cat)) +
+  labs(x = "Year",
+       y = "Distance (km)",
+       title = "The distance of Tour de France Route through the history (1903-2019)",
+       colour = "Percentage of mountain and hilly stage") +
+  theme_bw() +
+  geom_smooth(aes(x = year, y = distance),
+              method = "loess", se = FALSE, color = "steelblue", alpha = 0.5, size = 0.5) +
+  scale_x_continuous(breaks=seq(1903, 2019, 10)) +
+  theme(legend.position = "bottom",
+        text = element_text(size = 10),
+        plot.title.position = "plot") 
+
+
+  
+ggMarginal(dist_plot, margins = 'y', size=4, type = "histogram", 
+           fill = "steelblue", 
+           color = "steelblue",
+           alpha = 0.7)
+```
+
+
+
+```{r}
+
+#legendtitle <- list(yref='paper',xref="paper",y=1.05,x=1.1, text="Mountain and hilly stage(%)",showarrow=F)
+
+fig_dist <- dist_data %>%
+  highlight_key(~perc_mount_hill_cat) %>%
+  plot_ly(
+    x = ~year, y = ~distance, text = ~perc_mount_hill_cat, color = ~perc_mount_hill_cat, mode = "markers", 
+    textposition = "none", hoverinfo = "x+y"
+  ) %>%
+  add_annotations( text="% of mount & hill", xref="paper", yref="paper",
+                  x=1.02, xanchor="left",
+                  y=0.8, yanchor="bottom",    # Same y as legend below
+                  legendtitle=TRUE, showarrow=FALSE ) %>%
+  layout(legend=list(y=0.8, yanchor="top" ),
+         title = "Tour de France distance from 1903-2019",
+         xaxis = list(title = "Edition"),
+         yaxis = list(title = "Distance (km)")) %>%
+  highlight(on = "plotly_click", off = "plotly_doubleclick")
+
+fig_dist
+```
+
+
+
+
+
+**The speed of the winners. How does the bicycle technology development and doping usage affect?**
+
+```{r speed-data}
+dist_data <- dist_data %>% 
+  mutate(speed = distance/time_overall,
+         bicycle_tech = ifelse(year >= 1937 & year < 1972 , "derailleur introduced",
+                               ifelse(year >= 1972 & year < 1985, "lighweight bike introduced",
+                                      ifelse(year >= 1985 & year < 1990, "disc wheel introduced",
+                                             ifelse(year >= 1990, "other technologies developed",
+                                                    "pre-revolutionery tech")))),
+         doping = ifelse(year >= 1990 & year < 2000, "doping is widespread, no test",
+                         ifelse(year >= 2000 & year < 2008, "doping is tested",
+                                ifelse(year >= 2008, "cyclist also monitored using blood passport",
+                                       "pre-doping widespread")))) %>%
+  mutate(bicycle_tech = factor(bicycle_tech, levels = c("pre-revolutionery tech", 
+                                            "derailleur intorudeced", 
+                                            "lighweight bike intoduced", 
+                                            "disc wheel introduced",
+                                            "other technologies developed")))
+
+# https://www.adelaidenow.com.au/sport/how-tour-de-france-cycle-race-evolved-over-100-years-ago/news-story/f759f06f3ae23d4faf4fcba089e37cd6?sv=5bfd117ddc9268e7db9f3cf2b5d0fa1
+
+# https://www.andrewaage.com/post/analyzing-tour-de-france-data/
+```
+
+
+```{r speed-plot, fig.height=6, fig.width=8, fig.cap = "Speed of the winners through the history (1903-2018)"}
+
+cuts1 <- data.frame(Ref="Doping is widespread, no test", vals=c(1990))
+cuts2 <- data.frame(Ref="Doping is tested", vals=c(2000))
+cuts3 <- data.frame(Ref="Blood passport usage", vals=c(2008))
+cuts <- rbind(cuts1, cuts2, cuts3)
+
+
+
+speed_plot <- ggplot(filter(dist_data, !is.na(speed))) +
+  geom_point(aes(x = year,
+                 y = speed,
+                 colour = bicycle_tech)) +
+  geom_smooth(aes(x = year, y = speed),
+              method = "loess", se = FALSE, color = "steelblue", alpha = 0.5, size = 0.5) +
+  geom_vline(data = cuts , aes(xintercept=vals), colour = "tomato", alpha = 0.5, size = 0.5) +
+  geom_text(mapping = aes(x = vals,
+                          y = 0,
+                          label = Ref,
+                          hjust = 0,
+                          vjust = -0.5,
+                          angle = 90),
+            data = cuts,
+            size = 3) + 
+  scale_x_continuous(breaks=seq(1900, 2020, 10)) +
+  scale_y_continuous(breaks=seq(20, 50, 5))+
+  theme_bw() +
+  theme(text = element_text(size = 10),
+        legend.position = "bottom") +
+  labs(title = "Speed of the winners through the history (1903-2018)",
+       subtitle = "Observing the association of speed with bicycle technology and doping usage",
+       x = "Year",
+       y = "Speed (km/hour)",
+       colour = "Bicycle technology") +
+  guides(colour=guide_legend(nrow=2,byrow=TRUE))
+  
+
+ggMarginal(speed_plot, margins = 'y', size=4, type = "density", 
+           fill = "steelblue", 
+           color = "steelblue", 
+           alpha = 0.4 )
+
+```
+
+
+
+```{r bmi-data}
+
+dist_data <- dist_data %>%
+  mutate(bmi = weight / (height^2))
+
+ggplot(filter(dist_data, !is.na(speed), !is.na(bmi))) +
+  geom_point(aes(x = bmi,
+                 y = speed))
+
+```
+
+
+
+
+
+
 
 # Conclusion {-#mysection}
 
