@@ -42,18 +42,18 @@ library(gganimate)
 
 # Introduction
 
-The Tour de France is a cycling tournament that is held in France annually which spans across 21 stages over 23 gruelling days. It is considered one of the most prestigious races that elite cyclists can partake in given the level of diffiulty of riding through the ranging beautiful French landscapes (EEB (2020)).  Despite being an individual event, riders travel through the whole country in teams of 8 in order to strategically position the team leader in the best position to win the general classfications. This report mainly analyses the changes in the Tour de France over the past hundred years and the changes in riders’ characteristics. Our statistical programming used for analysis is _R_ and _Rstudio_.
+The Tour de France is a cycling tournament that is held in France annually which spans across 21 stages over 23 gruelling days. It is considered one of the most prestigious races that elite cyclists can partake in given the level of difficulty of riding through the ranging beautiful French landscapes (@EEB).  Despite being an individual event, riders travel through the whole country in teams of eight in order to strategically position the team leader in the best position to win the general classifications. This report mainly analyses the changes in the Tour de France over the past hundred years and the changes in riders’ characteristics. Our statistical programming used for analysis is _R_ and _Rstudio_.
 
 ## Motivation
 
-Tour De France (“Le Tour”) is an annual men’s bicycle race that in modern days encompasses a 21-day course that covers approximately 3,500km. It is predominantly held in France while often passing through other countries.  (Encyclopedia Britannica (2020)). The teams would pass through long countryside roads, steep alpine regions and tight city areas, covering terrain ranging from rolling hills, long ﬂat grounds and steep mountainous. The types of terrain dispersed across the diﬀerent stages over the 23 days. The rider that completes the most stages in the shortest amount of time wins the overall title.
+Tour De France ("Le Tour") is an annual men’s bicycle race that in modern days encompasses a 21-day course that covers approximately 3,500 km. It is predominantly held in France while often passing through other countries.  (@britannica2020). The teams would pass through long countryside roads, steep alpine regions and tight city areas, covering terrain ranging from rolling hills, long flat grounds and steep mountainous. The types of terrain dispersed across the different stages over the 23 days. The rider that completes the most stages in the shortest amount of time wins the overall title.
 
 Due to the long duration of the race, the intelligence or athletic ability of the riders are not the only factors in winning the race. The key to winning the competition also lies in the choice of strategy. Besides, with technological changes in the past hundred years and people's living standards have improved, various changes have taken place in the Tour de France. We will present our findings of the Tour de France through the exploration of the recording data from 1903 to 2019.
 
 
 ## Data Source
 
-The original source of the Tour de France data set is from the `tdf` package written by @tdf. The data is then provided and available to download in the [TidyTuesday's GitHub repository](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md) by @jthomasmock. There are three data sets regarding Tour de France available in this repository, namely `tdf_winners.csv`, `stage_data.csv`, and `tdf_stages.csv`. These data sets only covered the time period up to 2017, so we got the data from 2018 and 2019 year from Wikipedia [@wikiTDF2018] and [@wikiTDF2019].
+The original source of the Tour de France data set is from the `tdf` package written by @tdf. The data is then provided and available to download in the [TidyTuesday's GitHub repository](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md) by @jthomasmock. The data contain the competition and winners' information over 106 years from 1903 to 2019. The dataset prepared for analysis of how the competition changes across over a hundred years. It includes the information of 106 winners and the information of 21 stages for each rider from 106 competitions. There are three data sets regarding Tour de France available in this repository, namely `tdf_winners.csv`, `stage_data.csv`, and `tdf_stages.csv`. The `tdf_stages.csv` data only covered the period up to 2017, so we got the data from 2018 and 2019 year from Wikipedia [@wikiTDF2018] and [@wikiTDF2019].
 
 ```{r read-data, include = FALSE}
 stage_clean <- read.csv(here::here("data/stage_data.csv"))
@@ -63,27 +63,26 @@ tdf_stages <- read.csv(here::here("data/tdf_stages.csv"))
 
 ## Data Limitation
 
-```{r, fig.cap="Visualise the missing value in winner data", fig.align= "center"}
+```{r missing-value, fig.cap="Visualise the missing value in winners data", fig.align= "center"}
 winners %>%
   vis_miss(sort_miss = TRUE)
 ```
 
 - 
--	There are many factors that affect the rider's race performance, such as the weather conditions on the day of the race, and the rider's psychological factors. We cannot analysis all the aspects that affects the outcome of the competition.  
--	The dataset contains too much variables, there are relatively low proportion of missing values, so there are many analyisable questions. That it is difficult to cover all the possible analysis in one report.  
--	The time frame in the dataset are not consistent. `tdf_stages` data inside `tdf` package only provided data till the 2017 year while the other two data are covered all the way to 2019. Therefore, when using this data for analysis, we must consider whether to discard the data after 2017 or get the data from outher source like Wikipedia. If the analysis is for prediction, the data in recent years is the relatively important, and it is unreasonable to discard the data in recent years. However, when we choose to complete the data after 2017, it is necessary to ensure the consistency of the data, such as the method to record the data may be various between different institutions.  
-
+-	Many factors affect the rider's race performance, such as the weather conditions on the day of the race, and the rider's psychological factors. We cannot analyse all the aspects that affect the outcome of the competition.   
+-	The dataset contains too many variables, there are a relatively low proportion of missing values, so there are many analysable questions that it is challenging to cover all the possible analysis in one report.  
+-	The time frame in the dataset are not consistent. `tdf_stages` data inside `tdf` package only provided data till the 2017 edition while the other two data covered all the way to 2019. Therefore, when using this data for analysis, we must consider whether to discard the data after 2017 or try to complete the data. If the analysis is for prediction, the data in recent years is relatively important, and it is unreasonable to discard the data in recent years. However, when we choose to complete the data after 2017, it is necessary to ensure the consistency of the data, such as the method to record the data may be varied between different institutions.  
 
 # Data Description
 
 
-The data set records competition information of Tour de France, published on Alastair Rushworth’s [Github](https://github.com/alastairrushworth/tdf). The data recorded the competition information since the first organized in 1903, and 106 competitions been hold since then.
+The data set records competition information of Tour de France published on Alastair Rushworth's [Github](https://github.com/alastairrushworth/tdf). The data recorded the competition information since the first organised in 1903, and 106 competitions been held since then.
 
 The Tour de France is a men's multi-stage cycling race held annually in France and nearby countries. It was established in 1903 to increase the sales of the newspaper L'Auto. This event has become an important cultural event for European fans.
 
-This dataset includes the information of 106 winners, stages of each competition and the riders’ information of each stage in the competition. The time frame of the data recording was started in 1903 and until 2019. Alastair Rushworth collected the recording information from various websites and other places and then integrates it into the dataset. The dataset was separated into three data files and provided by .csv format. The following are the variables in each data.
+This dataset includes the information of 106 winners, stages of each competition, and the riders' information of each stage in the competition. The time frame of the data recording started in 1903 and until 2019. Alastair Rushworth collected the recording information from various websites and other places and then integrated it into the dataset. The dataset was separated into three data files and provided by `.csv` format. The following are the variables in each data.
 
-- The `tdf_winner` data comes from _tdf_winners.csv_. The data contains information about 106 winners of the Tour de France from 1903 to 2019. The part of the variables are showing in the Table \@ref(tab:winners-table).  
+- The `tdf_winner` data comes from _tdf_winners.csv_. The data contains information about 106 winners of the Tour de France from 1903 to 2019. The part of the variables is showing in Table \@ref(tab:winners-table).  
 
 ```{r winners-table, echo=FALSE}
 winners_info <- tibble(Variable = c("edition", "start_date", "winner_name", "winner_team", "distance", 
@@ -110,7 +109,7 @@ winners_info %>%
                 position = "center")
 ```
 
-- The `stage_data` data comes from _stage_data.csv_. The data contains ranking information for each stage of the annual race. The variables are showing in the Table \@ref(tab:stage-clean-table). 
+- The `stage_data` data comes from _stage_data.csv_. The data contains ranking information for each stage of the annual race. The variables is showing in Table \@ref(tab:stage-clean-table). 
 
 ```{r stage-clean-table, echo=FALSE}
 stage_data_info <- tibble(Variable = c("edition", "year", "stage_results_id", "rank", "time", "rider", "age", 
@@ -137,7 +136,7 @@ stage_data_info %>%
                 position = "center")
 ```
 
-- The `stage_data` data comes from _stage_data.csv_. The data contains information of each stage for the annual race. The variables are showing in the Table \@ref(tab:stage-table). 
+- The `stage_data` data comes from _stage_data.csv_. The data contains information of each stage for the annual race. The variables is showing in Table \@ref(tab:stage-table). 
 
 ```{r stage-table, echo=FALSE}
 stage_info <- tibble(Variable = c("Stage", "Date", "Distance", "Origin", "Destination", "Type", "Winner", "Winner_Country"),
@@ -161,23 +160,23 @@ stage_info %>%
 
 ## Relevant Questions
 
-The dataset is primarily used to analysis the changes on the Tour de France over hundred years. The primary question to answer from this dataset is how the performance of those riders is. After an overview of the primary question, we will conduct more specific analysis through the secondary questions as showing below:
+The dataset is primarily used to analysis the changes on the Tour de France over a hundred years. The primary question to answer from this dataset is __how the performance of those riders are?__ After an overview of the primary question, we will conduct more specific analysis through the secondary questions as showing below:
 
-1. What are the characteristics of Tour de France winner riders? 
-2. How does the distance and speed of the Tour de France change?
-3. Is the Tour de France becoming more competitive?
+1. _What are the characteristics of Tour de France winner riders?_ 
+2. _How does the distance and speed of the Tour de France change?_
+3. _Is the Tour de France becoming more competitive?_
 
 
 ## Data cleaning processes
 
 The dataset has used come from the Alastair Rushworth's Data Package `tdf` package. The dataset contains information about the overall winning rider for each edition of the race. The winner's biographical information and the results for each stage in each edition. To install the package, use ` install_github("alastairrushworth/tdf")`.  
--	The `winner` data can be imported from `editions` in the `tdf` package, we only need to filter out the `stage_results` variable.  
--	The `stage_data` dataset is also import by `tdf::editions`, the stage information are been nested on the `stage_results` variable. We use the unnest_longer() function to a rectangle the nested `stage` data into a tidy tibble, and then use the flatten_df() function to flatten a list of lists into a simple vector. This process is essential because `stage` data were nested in the `editions` data, we cannot read `stage` data directly from `editions` data. Finally, select the relevant variables and use the `year()` function in the `lubridate` package to extract the year of each race.   
--	It is the most convenient way to directly read the `tdf_stages` data from the `tdf` package, but it only provided data till the 2017 year while the actual dataset covered all the way to 2019. Thus, we opted to use the cleaning script found in the [GitHub](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md).  Furthermore, our debugging process includes renaming inconsistent variable names, extracting components of date-time objects and using regular expressions to fix the structure of character strings to reproduce the same data set that was intended. In addition, we web scraped the data from Wikipedia (@wikiTDF2018 and @wikiTDF2019) to obtain the stages data set for 2018 and 2019. These Wiki pages correspond to how the actual data set obtained its data; Thus, binding the data was straightforward as the structure the data was analogous with the `tdf_stages` data set.    
+-	The `winner` data can be imported from `editions` in the `tdf` package; we only need to filter out the `stage_results` variable.  
+-	The `stage_data` dataset is also import by `tdf::editions`, the stage information are been nested on the `stage_results` variable. We use the `unnest_longer()` function to a rectangle the nested `stage` data into a tidy tibble, and then use the flatten_df() function to flatten a list of lists into a simple vector. This process is essential because `stage` data nested in the `editions` data, we cannot read `stage` data directly from `editions` data. Finally, select the relevant variables and use the `year()` function in the `lubridate` package to extract the year of each race.   
+-	It is the most convenient way to directly read the `tdf_stages` data from the `tdf` package, but it only provided data till the 2017 year while the actual dataset covered to 2019. Thus, we opted to use the cleaning script found in the [GitHub](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md).  Furthermore, our debugging process includes renaming inconsistent variable names, extracting components of date-time objects and using regular expressions to fix the structure of character strings to reproduce the same data set that intended. In addition, we web scraped the data from Wikipedia (@wikiTDF2018 and @wikiTDF2019) to obtain the stages data set for 2018 and 2019. These Wiki pages correspond to how the actual data set obtained its data; Thus, binding the data was straightforward as the structure the data was analogous with the `tdf_stages` data set.    
 
 <details><summary>Expand here to see part of the data cleaning codes </summary>  
 
-```{r, eval=FALSE, echo=TRUE}
+```{r data-cleaning, eval=FALSE, echo=TRUE}
 library(tidyverse)
 library(tdf) # install at: https://github.com/alastairrushworth/tdf
 
@@ -212,13 +211,11 @@ stage_clean %>%
 
 </details>
 
-
-
 # Analysis and findings
 
-By overview of the Tour de France competition, first we begain to go through the performance of these winners and also the riders. We use the `winners` data to visualise how many times the riders have won the competition and use the `stage_clean` data to see how they perform on each of the stage in the competition.
+By overview of the Tour de France competition, first, we began to go through the performance of these winners and also the riders. We use the `tdf_winners` data to visualise how many times the riders have won the competition. Then use the `stage_clean` data to see how they perform on each of the stages in the competition.
 
-```{r, fig.cap="The number of times the rider win the Tour de France"}
+```{r winner-times, fig.cap="The number of times the rider win the Tour de France"}
 winners %>%
   count(winner_name, sort = TRUE) %>%
   filter(n > 1) %>%
@@ -237,7 +234,7 @@ winners %>%
   coord_flip()
 ```
 
-Refer to Figure 1, it presents the rank of number ot times the rider won the Tour de France in history. Lance Armstrong has won the competition seven total times, which is higher than most of the riders.  This brings us to an interesting question, does the winner achieve high rank or extraordinary performance in most of the stages?
+Refer to Figure \@ref(fig:winner-times); it presents the rank of the number of times the rider won the Tour de France in history. Lance Armstrong has won the competition seven total times, which is higher than most of the riders.  This brings us to an interesting question, does the winner achieve high rank or extraordinary performance in most of the stages?
 
 ```{r}
 tdf_stages_animation <- tdf_stages %>%
@@ -264,7 +261,7 @@ top_10_2019 <- total_points %>%
   top_n(15, total_points)
 ```
 
-```{r, fig.cap="The number of times the rider win the Tour de France"}
+```{r stage-point, fig.cap="The number of times the rider win the Tour de France"}
 stages_joined %>%
   filter(year == max(year)) %>%
   semi_join(top_10_2019, by = "rider") %>%
@@ -286,7 +283,7 @@ stages_joined %>%
 ```
 
 
-The animation displays the changes in the cumulative points of riders in 2019 (the higher rank the higher points), It only shows the top 15 drivers with accumulated points. The red bar is the winner of 2019, Bernal Egan. It is not difficult to find that the winner does not need to achieve very good results at every stage. Compared with the riders who got the higher cumulative ponits, the winners’ cumulative ponits are only half of theirs. 
+The animation (Figure \@ref(fig:stage-point)) displays the changes in the cumulative points of riders in 2019 (the higher rank, the higher points). It only shows the top 15 drivers with accumulated points. The red bar is the winner of 2019, Bernal Egan. It is not difficult to find that the winner does not need to achieve outstanding results at every stage. Compared with the riders who got higher cumulative points, the winners’ cumulative points are only half of theirs. 
 
 These figures give us a more in-depth exploration of data guidance. What are the characteristics of Tour de France winner riders? How does the distance and speed of the Tour de France change? Is the Tour de France becoming more competitive?
 
@@ -294,14 +291,16 @@ These figures give us a more in-depth exploration of data guidance. What are the
 
 For sports, the physical fitness of an athlete is the core factor that affects the outcome of the game. Especially for races like the Tour de France, the 23-day race is a severe test for athletes' physical fitness.
 
-BMI is usually an effective indicator for determining a person’s physical health. For example, a low BMI implies that the person will suffer and experienced weakened immune systems and/or weakened bones. We combine the height and weight variables of athletes into BMI according to the following formula:
+BMI is usually a significant indicator for determining a person's physical health. For example, a low BMI implies that the person will suffer and experienced weakened immune systems or weakened bones. We combine the height and weight variables of athletes into BMI according to the following formula:
+
 
 <center>
 $BMI = \frac{Weight(kg)}{(Height(m))^2}$
-
 </center>
 
-```{r bmi, fig.cap="BMI of previous Tour de France winners"}
+
+
+```{r bmi-year, fig.cap="BMI of previous Tour de France winners"}
 
 editions %>%
   ggplot(aes(x = start_date, y = weight / height^2)) +
@@ -317,9 +316,9 @@ editions %>%
   theme_classic() 
 ```
 
-Figure 1 shows the BMI value of the winners of the Tour de France in each year. We can observe that the BMI of the winners is mostly concentrated in a certain range. The red dash line is representing the range of appropriate BMI for adult males, which is between 19 and 25. In recent years, the BMI of the winners of the Tour de France has a certain downward trend, but this trend is not very obvious.
+Figure \@ref(fig:bmi-year) shows the BMI value of the winners of the Tour de France each year. We can observe that the BMI of the winners mostly concentrated in a particular range. The red dash line is representing the range of appropriate BMI for adult males, which is between 19 and 25. In recent years, the BMI of the winners of the Tour de France has a certain downward trend, but this trend is not very obvious.
 
-```{r age, fig.width=10, fig.cap="The age of the previous winners of the Tour de France"}
+```{r age-dist, fig.width=10, fig.cap="The age of the previous winners of the Tour de France"}
 library(gridExtra)
 age_line <- winners %>%
   group_by(decade = 10 * (year(start_date) %/% 10)) %>%
@@ -343,9 +342,9 @@ age_histogram <- winners %>%
 grid.arrange(age_line, age_histogram, ncol = 2)
 ```
 
-Age often plays a big factor in the assessment of an athlete potential performance. The plots are present in Figure 2. The left panel display the trend of the average age of the winners (average over a decade). We can see that although the average age has a high volatile over the hundred years, if we focus on the trend after 1980 the average age of the winners has gradually increased, and the average age of those winners has achieved 29 in the past ten years. The right panel shows the age distribution of all winners. We can roughly see that the age distribution of the winners is mainly between 20 and 35 years old, and the average is about 27 years old. Compared to other competitions, the winners of the Tour de France are relatively older.
+Age often plays a big factor in the assessment of potential athlete performance. The plots are present in Figure \@ref(fig:age-dist). The left panel displays the trend of the average age of the winners (average over a decade). We can see that although the average age has a high volatile over the hundred years if we focus on the trend after 1980 the average age of the winners has gradually increased, and the average age of those winners has achieved 29 in the past ten years. The right panel shows the age distribution of all winners. We can roughly see that the age distribution of the winners is mainly between 20 and 35 years old, and the average is about 27 years old. Compared to other competitions, the winners of the Tour de France are relatively older.
 
-```{r, fig.cap="The number of times the Tour de France country has won"}
+```{r winner-country, fig.cap="The number of times the Tour de France country has won"}
 winners %>%
   count(nationality, sort = TRUE) %>%
   ggplot(aes(reorder(nationality, n), n)) +
@@ -363,7 +362,7 @@ winners %>%
   coord_flip()
 ```
 
-```{r, fig.cap="The number of times the Tour de France team has won"}
+```{r winner-team, fig.cap="The number of times the Tour de France team has won"}
 winners %>%
   count(winner_team, name = 'num_of_wins') %>%
   filter(num_of_wins > 1) %>%
@@ -382,9 +381,9 @@ winners %>%
   coord_flip()
 ```
 
-If we compare the number of winners between countries (Refer to Figure 3), the number of France far exceeds the number of second place Belgium. Figure 4 compares the number of winners between the teams. The French team has four more winners than Alcyon-Dunlop which is ranked second. 
+If we compare the number of winners between countries (Refer to Figure \@ref(fig:winner-country)), the number of France far exceeds the number of second-place Belgium. Figure \@ref(fig:winner-team) compares the number of winners between the teams. The French team has four more winners than Alcyon-Dunlop, which is ranked second. 
 
-It is not difficult to observe that both the number of winners between countries and teams, the number of ranked first are much higher than the following. This is because the Tour de France also focuses on the strategy of the competition. A good team or country has a better strategy that is more suitable for the comprtition. Specifically, the financial backing of these larger teams allow them to attract top tier riders, coaches and staff given the pay packets they are able to provide as well as being able to afford all the the state of the art practices that assist performance thus potentially improving their dominance relative to smaller teams ((“What Makes Ineos Unbeatable?” 2019)). This may indicate that a rider may have a better chance of winning the Tour de France depending on the team they choose/are chosen for.
+It is not difficult to observe that both the number of winners between countries and teams, the number of ranked first are much higher than the following. This is because the Tour de France also focuses on the strategy of the competition. A good team or country has a better strategy that is more suitable for competition. Specifically, the financial backing of these larger teams allow them to attract top tier riders, coaches and staff given the pay packets they are able to provide as well as being able to afford all the state of the art practices that assist performance thus potentially improving their dominance relative to smaller teams (@LindseyJ). This may indicate that a rider may have a better chance of winning the Tour de France depending on the team they have chosen.
 
 
 ##  How does the distance and speed of the Tour de France change?
@@ -633,7 +632,7 @@ ggMarginal(speed_plot, margins = 'y', size=4, type = "density",
 
 ## Is the Tour de France becoming more competitive?
 
-With the increase in the number of holding of the Tour de France and the development of technology, the equipment becomes more advanced and the team's strategy becomes more mature, which may lead to more intense competition in the competition. In the following, we will analyse whether the Tour de France has become more competitive based on the data.
+With the increase in the number of holding of the Tour de France and the development of technology, the equipment becomes more advanced, and the team's strategy becomes more mature, which may lead to more intense competition in the competition. In the following, we will analyse whether the Tour de France has become more competitive based on the data.
 
 ```{r, fig.cap="Average hours taken by the winner to complete the race"}
 winner_hours <- winners %>%
@@ -649,7 +648,7 @@ winner_hours <- winners %>%
 ggplotly(winner_hours)
 ```
 
-As showing in Figure 5, the average of total hours taken by the winner to complete the race are increased before 1920 and reached its peak around 1920 which is over two hundred hours. After 1920, the average total hours began to decline, and until the past decades, the average total hours have dropped to less than ninty hours. However, this result is still not enough support that the riders is getting faster than before and the competition getting more competitive, because the reduction in average total hours is also affected by the distance of the races.
+As showing in Figure 5, the average of total hours taken by the winner to complete the race are increased before 1920 and reached its peak around 1920, which is over two hundred hours. After 1920, the average total hours began to decline, and until the past decades, the average total hours have dropped to less than ninety hours. However, this result is still not enough to support that the riders are getting faster than before and the competition getting more competitive, because the reduction in average total hours is also affected by the distance of the races.
 
 ```{r, fig.cap="Average difference in finishing time between the race winner and the runner up"}
 winner_time_margin <- winners %>%
@@ -665,7 +664,7 @@ winner_time_margin <- winners %>%
 ggplotly(winner_time_margin)
 ```
 
-Next we can look at the time margin trend (Refer to Figure 6), the line represents the trend of time margin over decades. From the figure, it is obvious that the time margin is decreasing, which means that the time gap between the winner and the second place is getting smaller. By 2010, the time margin was already less than three minute. This means that regardless of the length of the distance, the performance difference between the riders has become smaller and the competition has become more intense. A slight mistake may lose the chance of winning.
+Next, we can look at the time margin trend (Refer to Figure 6); the line represents the trend of time margin over decades. From the figure, it is obvious that the time margin is decreasing, which means that the time gap between the winner and the second place is getting smaller. By 2010, the time margin was already less than three minutes. This means that regardless of the length of the distance, the performance difference between the riders has become smaller, and the competition has become more intense. A slight mistake may lose the chance of winning.
 
 
 
