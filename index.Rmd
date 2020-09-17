@@ -664,7 +664,7 @@ winner_time_margin <- winners %>%
 ggplotly(winner_time_margin)
 ```
 
-Next, we can look at the time margin trend (Refer to Figure 6); the line represents the trend of time margin over decades. From the figure, it is obvious that the time margin is decreasing, which means that the time gap between the winner and the second place is getting smaller. By 2010, the time margin was already less than three minutes. This means that regardless of the length of the distance, the performance difference between the riders has become smaller, and the competition has become more intense. A slight mistake may lose the chance of winning.
+Then, we can look at the time margin trend (Refer to Figure 6); the line represents the trend of time margin over decades. From the figure, it is obvious that the time margin is decreasing, which means that the time gap between the winner and the second place is getting smaller. By 2010, the time margin was already less than three minutes. This means that regardless of the length of the distance, the performance difference between the riders has become smaller, and the competition has become more intense. A slight mistake may lose the chance of winning.
 
 
 
@@ -674,7 +674,7 @@ Next, we can look at the time margin trend (Refer to Figure 6); the line represe
 
 
 
-# Conclusion {-#mysection}
+# Conclusion
 
 At the conclusion of out analysis it is evident a rider must possess a range of different attributes and strategies in place in order to win the general classification. Specifically, the analysis highlights the importance of targeting appropriate stages to attack the competition, training for the right terrain and building the most efficient body to endure the gruelling 23 day tour in order to come out victorious with the general classification. 
 
@@ -683,6 +683,13 @@ Furthermore, as tour organisers organised new trophies, the number of riders in 
 Overall winners do not necessarily win all stages, but have appeared to be consistent in ranks. In most cases, overall winners climb the ranks gradually, ranking less than 40 and stages 1-7 and less than 20 from stages 8 onwards respectively. Our analysis implied that overall winners may start wearing the yellow jersey at stage 17 onwards.
 
 Our analysis asserts overall winners are all rounders and deploy strategic tactics. On top of their physiological traits, overall winners are usually formidable at climbing mountains. Additionally, overall winners does not triumph without his team as the speediest rider may not surpass a group of cyclists. Team allows their team leader take advantage of aerodynamics to ride at higher speeds with less energy expended, preserving his energy for critical stages.
+
+# Acknowledgement
+
+Thanks for _tidytuesday_ provided the data cleaning process, relevant articles and original data source on GitHub (@tidytuesday). The dataset used is Tour de France dataset offered by _Alastair Rushworth_ on the `tdf` package (@tdf). Thanks for _Samuel Lyubic_ and _Brendi Ang_ for provided an excellent report as our reference.  
+
+Packages used are @GGPLOT, @Tidyverse, @plotly, @kableExtra, @lubridate, @naniar, @plotly, @ggExtra, @ggforce, @patchwork, @polite, @rvest, @ggrepel and @gganimate.
+
 
 \clearpage
 
