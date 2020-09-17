@@ -37,6 +37,8 @@ library(rvest)
 library(ggrepel)
 library(naniar)
 library(gganimate)
+library(gifski)
+library(png)
 ```
 
 [This assignment is for ETC5521 Assignment 1 by Team `r rmarkdown::metadata$team` comprising of `r knitr::combine_words(rmarkdown::metadata$author)`.]{style="color:#006DAE;"}
@@ -696,7 +698,7 @@ The limitation of this research is the dataset contains too many variables, ther
 
 Thanks for _tidytuesday_ provided the data cleaning process, relevant articles and original data source on GitHub (@tidytuesday). The dataset used is Tour de France dataset offered by _Alastair Rushworth_ on the `tdf` package (@tdf). Thanks for _Samuel Lyubic_ and _Brendi Ang_ for provided an excellent report as our reference.  
 
-Packages used are @GGPLOT, @Tidyverse, @plotly, @kableExtra, @lubridate, @naniar, @plotly, @ggExtra, @ggforce, @patchwork, @polite, @rvest, @ggrepel and @gganimate.
+Packages used are @GGPLOT, @Tidyverse, @plotly, @kableExtra, @lubridate, @naniar, @plotly, @ggExtra, @ggforce, @patchwork, @polite, @rvest, @ggrepel, @gifski, @png and @gganimate.
 
 
 \clearpage
