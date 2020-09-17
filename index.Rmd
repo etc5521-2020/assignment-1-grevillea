@@ -69,9 +69,8 @@ winners %>%
   vis_miss(sort_miss = TRUE)
 ```
 
-- From Figure \@ref(fig:missing-value), we can see that there are seven variables that have missing values. The missing values in variable of `full_name`, `died`, and `nickname` were not really matter since we would not use these variables. However, we would use `height`, `weight`, `time_overall`, and `time_margin` variable. Hence, we have to handle these missing value. We finally decided to just omit these missing values because these variables are very specific to a person. It is hard to only use for example an average to impute the value because the overall time for winner each year must be different and the slight gap of time can be affected the result of the competition. 
+- From Figure \@ref(fig:missing-value), we can see that there are seven variables that have missing values. The missing values in variable of `full_name`, `died`, and `nickname` were not really matter since we would not use these variables. However, we would use `height`, `weight`, `time_overall`, and `time_margin` variable. Hence, we have to handle these missing value. We finally decided to just omit these missing values because these variables are very specific to a person. It is hard to only use for example an average to impute the value because the overall time for winner each year must be different and the slight gap of time can be affected the result of the competition.   
 -	Many factors affect the rider's race performance, such as the weather conditions on the day of the race, and the rider's psychological factors. We cannot analyse all the aspects that affect the outcome of the competition.   
--	The dataset contains too many variables, there are a relatively low proportion of missing values, so there are many analysable questions that it is challenging to cover all the possible analysis in one report.  
 -	The time frame in the dataset are not consistent. `tdf_stages` data inside `tdf` package only provided data till the 2017 edition while the other two data covered all the way to 2019. Therefore, when using this data for analysis, we must consider whether to discard the data after 2017 or try to complete the data. If the analysis is for prediction, the data in recent years is relatively important, and it is unreasonable to discard the data in recent years. However, when we choose to complete the data after 2017, it is necessary to ensure the consistency of the data, such as the method to record the data may be varied between different institutions.  
 
 # Data Description
@@ -680,14 +679,13 @@ Then, we can look at the time margin trend (Refer to Figure 6); the line represe
 
 # Conclusion
 
+Through the above analysis, we can conclude that the winners do not have to perform outstandingly in most of the stages, they need to retain physical strength in some stages, and allocate it to other stages reasonably. The BMI of those winners are within the normal range for male. Although the age is older than other sports, because the Tour de France is a strategic race, older riders have more experienced. Since a team or country with a large number of wins has the opportunity to attract talents, these teams or countries with some talents are more likely to win the competition.
 
-At the conclusion of out analysis it is evident a rider must possess a range of different attributes and strategies in place in order to win the general classification. Specifically, the analysis highlights the importance of targeting appropriate stages to attack the competition, training for the right terrain and building the most efficient body to endure the gruelling 23 day tour in order to come out victorious with the general classification. 
 
-Furthermore, as tour organisers organised new trophies, the number of riders in contention of the yellow jersey have dwindled over the years as riders focuse on specific terrains, making it more difficult for overall winners to lead the stage. Each year, tour organisers vary the stages for the course, forcing riders to tailor their tactics for the different adversities in each course.
 
-Overall winners do not necessarily win all stages, but have appeared to be consistent in ranks. In most cases, overall winners climb the ranks gradually, ranking less than 40 and stages 1-7 and less than 20 from stages 8 onwards respectively. Our analysis implied that overall winners may start wearing the yellow jersey at stage 17 onwards.
+As the time difference between the riders getting narrower, the competition is becoming more competitive, and the strategy at each stage of the competition is particularly important. The team has to be careful in each of the stages; even a small accident the rider can be overtaken.
 
-Our analysis asserts overall winners are all rounders and deploy strategic tactics. On top of their physiological traits, overall winners are usually formidable at climbing mountains. Additionally, overall winners does not triumph without his team as the speediest rider may not surpass a group of cyclists. Team allows their team leader take advantage of aerodynamics to ride at higher speeds with less energy expended, preserving his energy for critical stages.
+The limitation of this research is the dataset contains too many variables, there are a relatively low proportion of missing values, so there are many analysable questions that it is challenging to cover all the possible analysis in one report.
 
 # Acknowledgement
 
