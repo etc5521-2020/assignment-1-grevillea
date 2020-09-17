@@ -14,6 +14,7 @@ output:
       number_sections: yes
       citation_package: biblatex
       toc: true
+      toc_float: true
 bibliography: references.bib
 biblio-style: authoryear-comp
 ---
@@ -68,7 +69,7 @@ winners %>%
   vis_miss(sort_miss = TRUE)
 ```
 
-- 
+- From Figure \@ref(fig:missing-value), we can see that there are seven variables that have missing values. The missing values in variable of `full_name`, `died`, and `nickname` were not really matter since we would not use these variables. However, we would use `height`, `weight`, `time_overall`, and `time_margin` variable. Hence, we have to handle these missing value. We finally decided to just omit these missing values because these variables are very specific to a person. It is hard to only use for example an average to impute the value because the overall time for winner each year must be different and the slight gap of time can be affected the result of the competition. 
 -	Many factors affect the rider's race performance, such as the weather conditions on the day of the race, and the rider's psychological factors. We cannot analyse all the aspects that affect the outcome of the competition.   
 -	The dataset contains too many variables, there are a relatively low proportion of missing values, so there are many analysable questions that it is challenging to cover all the possible analysis in one report.  
 -	The time frame in the dataset are not consistent. `tdf_stages` data inside `tdf` package only provided data till the 2017 edition while the other two data covered all the way to 2019. Therefore, when using this data for analysis, we must consider whether to discard the data after 2017 or try to complete the data. If the analysis is for prediction, the data in recent years is relatively important, and it is unreasonable to discard the data in recent years. However, when we choose to complete the data after 2017, it is necessary to ensure the consistency of the data, such as the method to record the data may be varied between different institutions.  
@@ -172,7 +173,7 @@ The dataset is primarily used to analysis the changes on the Tour de France over
 The dataset has used come from the Alastair Rushworth's Data Package `tdf` package. The dataset contains information about the overall winning rider for each edition of the race. The winner's biographical information and the results for each stage in each edition. To install the package, use ` install_github("alastairrushworth/tdf")`.  
 -	The `winner` data can be imported from `editions` in the `tdf` package; we only need to filter out the `stage_results` variable.  
 -	The `stage_data` dataset is also import by `tdf::editions`, the stage information are been nested on the `stage_results` variable. We use the `unnest_longer()` function to a rectangle the nested `stage` data into a tidy tibble, and then use the flatten_df() function to flatten a list of lists into a simple vector. This process is essential because `stage` data nested in the `editions` data, we cannot read `stage` data directly from `editions` data. Finally, select the relevant variables and use the `year()` function in the `lubridate` package to extract the year of each race.   
--	It is the most convenient way to directly read the `tdf_stages` data from the `tdf` package, but it only provided data till the 2017 year while the actual dataset covered to 2019. Thus, we opted to use the cleaning script found in the [GitHub](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md).  Furthermore, our debugging process includes renaming inconsistent variable names, extracting components of date-time objects and using regular expressions to fix the structure of character strings to reproduce the same data set that intended. In addition, we web scraped the data from Wikipedia (@wikiTDF2018 and @wikiTDF2019) to obtain the stages data set for 2018 and 2019. These Wiki pages correspond to how the actual data set obtained its data; Thus, binding the data was straightforward as the structure the data was analogous with the `tdf_stages` data set.    
+-	It is the most convenient way to directly read the `tdf_stages` data from the `tdf` package, but it only provided data till the 2017 year while the actual dataset covered to 2019. Thus, we opted to use the cleaning script found in the [GitHub Tidy Tuesday page](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-04-07/readme.md) [@jthomasmock].  Furthermore, our debugging process includes renaming inconsistent variable names, extracting components of date-time objects and using regular expressions to fix the structure of character strings to reproduce the same data set that intended. In addition, we web scraped the data from Wikipedia (@wikiTDF2018 and @wikiTDF2019) to obtain the stages data set for 2018 and 2019. These Wiki pages correspond to how the actual data set obtained its data; Thus, binding the data was straightforward as the structure the data was analogous with the `tdf_stages` data set.    
 
 <details><summary>Expand here to see part of the data cleaning codes </summary>  
 
@@ -552,7 +553,7 @@ ggMarginal(dist_plot, margins = 'y', size=4, type = "histogram",
 ```
 In Figure \@ref(fig:dist-plot), we can see that until 1933, the distance covered on the Tour de France continued to increase. The reason might be because, at that time, this competition was intended to gain the popularity of L'Auto Sport Magazine. The long distance cycling was sensational and could gain the sell of this magazine [@origin]. Not surprisingly, in that period, the Tour de France distance can reach more than 5000 km. After 1933, the competition's mileage gradually declined.
 
-If we look at the marginal histogram on the right side of the plot, we can also conclude that the distribution of Tour de France distance is multimodal. In the first three decades of the competition, the most frequent distance is around 5500 km. After that, the most frequent distances decreased to about 4500 km and 4000 km. Finally, it went down again to around 3500 km.
+If we look at the marginal histogram on the right side of the plot, we can also infere that the distribution of Tour de France distance is multimodal. In the first three decades of the competition, the most frequent distance is around 5500 km. After that, the most frequent distances decreased to about 4500 km and 4000 km. Finally, it went down again to around 3500 km.
 
 Does this decreasing trend mean that the difficulty level of the Tour de France was also decreasing? Based on Figure \@ref(fig:dist-plot), we can see that after 1933, when the trend started to decrease, the route was still dominated by 40-49.9 percent mountains, just like before 1933. It means that the terrain did not change that much, and therefore, the difficulty might have been reduced. 
 
@@ -563,6 +564,7 @@ In the early 1970s to 2006, as the distance decreased, the route was dominated b
 **The speed of the winners. How does the bicycle technology development and doping usage associate the performance?**
 
 <br>
+
 
 ```{r speed-data}
 dist_data <- dist_data %>% 
@@ -582,9 +584,7 @@ dist_data <- dist_data %>%
                                             "disc wheel introduced",
                                             "other technologies developed")))
 
-# https://www.adelaidenow.com.au/sport/how-tour-de-france-cycle-race-evolved-over-100-years-ago/news-story/f759f06f3ae23d4faf4fcba089e37cd6?sv=5bfd117ddc9268e7db9f3cf2b5d0fa1
 
-# https://www.andrewaage.com/post/analyzing-tour-de-france-data/
 ```
 
 
@@ -617,7 +617,7 @@ speed_plot <- ggplot(filter(dist_data, !is.na(speed))) +
   theme_classic() +
   theme(text = element_text(size = 10),
         legend.position = "bottom") +
-  labs(title = "Speed of the winners through the history (1903-2018)",
+  labs(title = "Speed of the winners through the history (1903-2019)",
        subtitle = "Observing the association of speed with bicycle technology and doping usage",
        x = "Year",
        y = "Speed (km/hour)",
@@ -633,7 +633,13 @@ ggMarginal(speed_plot, margins = 'y', size=4, type = "density",
 ```
 
 
+In contrast to distance, cyclist speed has increased throughout the history of the Tour de France (refer to Figure \@ref(fig:speed-plot)). We tried to examine the existence of the lurking variables behind this phenomenon. According to @petrocik, one of the reasons for cyclists' increasing speed is because bicycle technology continues to develop. Therefore, we tried to divide the competition period based on the time line of bicycle technology development, which we refer from @homfray. We also mark the period when doping became widespread, and the testing was used, since according to @rivenaes, doping usage also impacted cyclist speed.
 
+The density plot in Figure \@ref(fig:speed-plot) shows that the riders' speed has a bimodal distribution. Referring to the development of bicycle technology, the shorter peak could be associated with the period before the bicycle's revolutionary technology was achieved. At that time, the average speed of a cyclist was only about 25 km/hour. After derailleur was discovered in 1938, there was an increase in cyclist speed. It is s because cyclists can change the gear to travel through mountains using this tool. However, the existence of lightweight bicycles and disc wheels did not seems to be associated with increased cyclists' speed. It can be seen from the speed that tends to be flat.
+
+In 1990 and later, bicycle technology continued to develop. From now on, doping is also illegally used by cyclists to increase their stamina.  Further, the highest speed in history happened in 1998, right in this era of doping use. The fastest record was created by Lance Armstrong, who finally admitted that he had also used doping to win the competition. Starting in 2000, when doping use was tested, there was no noticeable change in cyclist speed. We can see that the speed tends to be the same as in the previous period. Only when blood passports were used in 2008, riders' speed was slower because it tested doping more closely.
+
+<br>
 
 ## Is the Tour de France becoming more competitive?
 
@@ -670,13 +676,6 @@ ggplotly(winner_time_margin)
 ```
 
 Next, we can look at the time margin trend (Refer to Figure 6); the line represents the trend of time margin over decades. From the figure, it is obvious that the time margin is decreasing, which means that the time gap between the winner and the second place is getting smaller. By 2010, the time margin was already less than three minutes. This means that regardless of the length of the distance, the performance difference between the riders has become smaller, and the competition has become more intense. A slight mistake may lose the chance of winning.
-
-
-
-
-
-
-
 
 
 # Conclusion {-#mysection}
