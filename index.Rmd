@@ -355,6 +355,7 @@ winners %>%
            fill = "#E59866") +
   labs(x = NULL, y = 'Tour de France wins') +
   geom_text(aes(label = n, y = n + 1)) +
+  ggtitle("The number of times the Tour de France country has won") +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.ticks = element_blank(),
@@ -374,6 +375,7 @@ winners %>%
            fill = "#3498DB") +
   labs(x = NULL, y = 'Tour de France wins') +
   geom_text(aes(label = num_of_wins, y = num_of_wins + 0.5)) +
+  ggtitle("The number of times the Tour de France team has won") +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.ticks = element_blank(),
