@@ -649,7 +649,7 @@ In 1990 and later, bicycle technology continued to develop. From now on, doping 
 
 With the increase in the number of holding of the Tour de France and the development of technology, the equipment becomes more advanced, and the team's strategy becomes more mature, which may lead to more intense competition in the competition. In the following, we will analyse whether the Tour de France has become more competitive based on the data.
 
-```{r, fig.cap="Average hours taken by the winner to complete the race"}
+```{r finish-hour, fig.cap="Average hours taken by the winner to complete the race"}
 winner_hours <- winners %>%
   group_by(decade = 10 * (year(start_date) %/% 10)) %>%
   summarise(time_overall = mean(time_overall, na.rm = TRUE)) %>%
@@ -663,9 +663,9 @@ winner_hours <- winners %>%
 ggplotly(winner_hours)
 ```
 
-As showing in Figure 5, the average of total hours taken by the winner to complete the race are increased before 1920 and reached its peak around 1920, which is over two hundred hours. After 1920, the average total hours began to decline, and until the past decades, the average total hours have dropped to less than ninety hours. However, this result is still not enough to support that the riders are getting faster than before and the competition getting more competitive, because the reduction in average total hours is also affected by the distance of the races.
+As showing in Figure \@ref(fig:finish-hour), the average of total hours taken by the winner to complete the race are increased before 1920 and reached its peak around 1920, which is over two hundred hours. After 1920, the average total hours began to decline, and until the past decades, the average total hours have dropped to less than ninety hours. However, this result is still not enough to support that the riders are getting faster than before and the competition getting more competitive, because the reduction in average total hours is also affected by the distance of the races.
 
-```{r, fig.cap="Average difference in finishing time between the race winner and the runner up"}
+```{r time-margin, fig.cap="Average difference in finishing time between the race winner and the runner up"}
 winner_time_margin <- winners %>%
   group_by(decade = 10 * (year(start_date) %/% 10)) %>%
   summarise(time_margin = mean(time_margin, na.rm = TRUE)) %>%
@@ -679,7 +679,7 @@ winner_time_margin <- winners %>%
 ggplotly(winner_time_margin)
 ```
 
-Then, we can look at the time margin trend (Refer to Figure 6); the line represents the trend of time margin over decades. From the figure, it is obvious that the time margin is decreasing, which means that the time gap between the winner and the second place is getting smaller. By 2010, the time margin was already less than three minutes. This means that regardless of the length of the distance, the performance difference between the riders has become smaller, and the competition has become more intense. A slight mistake may lose the chance of winning.
+Then, we can look at the time margin trend (Refer to Figure \@ref(fig:time-margin)); the line represents the trend of time margin over decades. From the figure, it is obvious that the time margin is decreasing, which means that the time gap between the winner and the second place is getting smaller. By 2010, the time margin was already less than three minutes. This means that regardless of the length of the distance, the performance difference between the riders has become smaller, and the competition has become more intense. A slight mistake may lose the chance of winning.
 
 
 # Conclusion
@@ -700,8 +700,6 @@ Thanks for _tidytuesday_ provided the data cleaning process, relevant articles a
 
 Packages used are @GGPLOT, @Tidyverse, @plotly, @kableExtra, @lubridate, @naniar, @plotly, @ggExtra, @ggforce, @patchwork, @polite, @rvest, @ggrepel, @gifski, @png and @gganimate.
 
-
-\clearpage
 
 # References
 
